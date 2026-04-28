@@ -13,6 +13,16 @@ window.addEventListener('load', () => {
   }, 3000);
 });
 
+// Логика переключения страниц
+function switchPage(pageId) {
+  document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  window.scrollTo(0, 0); // Прокрутка вверх при смене страницы
+}
+
+document.getElementById('profile-btn').onclick = () => switchPage('profile-page');
+document.getElementById('back-btn').onclick = () => switchPage('main-app');
+
 function initProfile() {
   const user = tg.initDataUnsafe.user;
   if (user) {
@@ -27,7 +37,7 @@ window.copyRefLink = function() {
   const link = document.getElementById('ref-link').innerText;
   navigator.clipboard.writeText(link).then(() => {
     tg.HapticFeedback.notificationOccurred('success');
-    tg.showAlert('Ссылка скопирована в буфер обмена!');
+    tg.showAlert('Ссылка скопирована!');
   });
 }
 
@@ -37,8 +47,7 @@ async function loadMenu() {
     menu = await res.json();
     renderMenu('all');
     setupCategories();
-  } catch (e) { console.error(e); }
-}
+  } catch (e) { console.error(e); }}
 
 function renderMenu(filterCat) {
   const grid = document.getElementById('menu-grid');
@@ -47,7 +56,8 @@ function renderMenu(filterCat) {
   grid.innerHTML = items.map(item => `
     <div class="menu-item" onclick="addToCart(${item.id})">
       <img src="${item.image}" alt="${item.name}" class="item-image" loading="lazy">
-      <div class="item-content">        <div class="item-name">${item.name}</div>
+      <div class="item-content">
+        <div class="item-name">${item.name}</div>
         <div class="item-desc">${item.desc}</div>
         <div class="item-footer">
           <div class="item-price">${item.price} ₽</div>
@@ -86,17 +96,15 @@ function updateCartUI() {
   if (count > 0) btn.classList.remove('hidden');
   else btn.classList.add('hidden');
 }
-
 document.getElementById('cart-btn').onclick = () => { renderCart(); document.getElementById('cart-modal').classList.remove('hidden'); };
 document.getElementById('close-cart').onclick = () => document.getElementById('cart-modal').classList.add('hidden');
-document.getElementById('profile-btn').onclick = () => document.getElementById('profile-modal').classList.remove('hidden');
-document.getElementById('close-profile').onclick = () => document.getElementById('profile-modal').classList.add('hidden');
 
 function renderCart() {
   const container = document.getElementById('cart-items');
   if (cart.length === 0) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Корзина пуста</div>'; return; }
   container.innerHTML = cart.map(item => `
-    <div class="cart-item">      <div><b>${item.name}</b> x${item.qty}</div>
+    <div class="cart-item">
+      <div><b>${item.name}</b> x${item.qty}</div>
       <div class="cart-item-price">${item.price * item.qty} ₽</div>
     </div>
   `).join('');
