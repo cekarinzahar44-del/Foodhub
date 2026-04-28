@@ -3,32 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>FoodHub</title>
+  <title>ЕдаТут</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body>
-  <!-- Логотип -->
+<body class="loading">
+
+  <!-- 1. ЗАСТАВКА (SPLASH SCREEN) -->
+  <div id="splash-screen" class="splash-v2">
+    <div class="splash-particles">
+      <!-- Летающие бургеры -->
+      <span class="burger-particle">🍔</span>
+      <span class="burger-particle">🍔</span>
+      <span class="burger-particle">🍔</span>
+      <span class="burger-particle">🍔</span>
+      <span class="burger-particle">🍔</span>
+      <span class="burger-particle">🍔</span>
+      <span class="burger-particle">🍔</span>
+      <span class="burger-particle">🍔</span>
+    </div>
+    
+    <div class="splash-content-v2">
+      <div class="logo-container">
+        <div class="logo-glow"></div>
+        <!-- ВАЖНО: Замени src на ссылку твоего логотипа, если загрузишь его -->
+        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Лого" class="splash-logo-v2">
+        <div class="logo-ring"></div>
+      </div>
+      
+      <h1 class="splash-title-v2">
+        <span class="letter">Е</span>
+        <span class="letter">д</span>
+        <span class="letter">а</span>
+        <span class="letter">Т</span>
+        <span class="letter">у</span>
+        <span class="letter">т</span>
+      </h1>
+      
+      <div class="tagline">Быстро. Вкусно. Удобно.</div>
+      
+      <div class="splash-loader-v2">
+        <div class="loader-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
   <header class="app-header">
     <div class="logo">
-      <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="FoodHub" class="logo-icon">
-      <span class="logo-text">FoodHub</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="ЕдаТут" class="logo-icon">
+      <span class="logo-text">ЕдаТут</span>
     </div>
     <button id="cart-btn" class="cart-btn hidden">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-      </svg>
-      <span id="cart-count">0</span>
+       <span id="cart-count">0</span>
     </button>
   </header>
 
-  <!-- Меню -->
   <main id="menu-grid" class="menu-grid">
-    <!-- Товары загрузятся через JS -->
+    <!-- Сюда загрузятся товары -->
   </main>
 
-  <!-- Корзина (модальное окно) -->
+  <!-- Корзина -->
   <div id="cart-modal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
