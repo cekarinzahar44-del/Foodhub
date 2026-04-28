@@ -16,11 +16,9 @@ let cart = [];
 // Логика заставки
 window.addEventListener('load', () => {
   const splash = document.getElementById('splash-screen');
-  // Через 3 секунды начинаем скрывать
   setTimeout(() => {
     splash.classList.add('hide');
   }, 2500);
-  // Через 3 секунды полностью убираем
   setTimeout(() => {
     splash.style.display = 'none';
     document.body.classList.remove('loading');
@@ -47,9 +45,9 @@ function renderMenu() {
         <div class="item-name">${item.name}</div>
         <div class="item-desc">${item.desc}</div>
         <div class="item-footer">
-          <div class="item-price">${item.price} ₽</div>          <button class="add-btn">+</button>
-        </div>
-      </div>
+          <div class="item-price">${item.price} ₽</div>
+          <button class="add-btn">+</button>
+        </div>      </div>
     </div>
   `).join('');
 }
@@ -97,8 +95,8 @@ document.getElementById('cart-btn').onclick = () => {
 document.getElementById('close-cart').onclick = () => {
   document.getElementById('cart-modal').classList.add('hidden');
 };
-document.getElementById('submit-order').onclick = async () => {
-  const address = document.getElementById('address').value.trim();
+
+document.getElementById('submit-order').onclick = async () => {  const address = document.getElementById('address').value.trim();
   const comment = document.getElementById('comment').value.trim();
   if (!address) { tg.showAlert('Укажите адрес доставки'); return; }
   if (cart.length === 0) { tg.showAlert('Корзина пуста'); return; }
