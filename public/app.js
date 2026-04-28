@@ -4,6 +4,7 @@ tg.expand();
 
 let menu = [];
 let cart = [];
+let userId = null;
 
 window.addEventListener('load', () => {
   setTimeout(() => {
@@ -14,40 +15,66 @@ window.addEventListener('load', () => {
   }, 3000);
 });
 
-// Навигация
 function setupNavigation() {
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.onclick = () => {
-      // Убираем активный класс у всех кнопок
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-      // Добавляем активный класс нажатой
       btn.classList.add('active');
-      
-      // Скрываем все страницы
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      // Показываем нужную
       const targetId = btn.getAttribute('data-target');
       document.getElementById(targetId).classList.add('active');
-      
-      // Скролл вверх
       window.scrollTo(0, 0);
     };
   });
 }
 
-function switchToTab(tabName) {
-  const btn = document.querySelector(`.nav-item[data-target="page-${tabName}"]`);
-  if (btn) btn.click();
-}
-
-// Профиль
 function initProfile() {
   const user = tg.initDataUnsafe.user;
   if (user) {
+    userId = user.id;
     document.getElementById('profile-name').innerText = user.first_name || 'Пользователь';
     document.getElementById('profile-id').innerText = `ID: ${user.id}`;
+    
+    // Генерируем номер карты на основе ID
+    const cardNum = String(user.id).padStart(12, '0');
+    const formattedCard = cardNum.replace(/(\d{4})(?=\d)/g, '$1 ');
+    document.getElementById('card-number').innerText = formattedCard;
+    
+    // Генерируем QR-код для карты лояльности
+    generateLoyaltyQR(userId);
+    
+    // Реферальная ссылка
     const refLink = `https://t.me/FoodhubBot?start=ref_${user.id}`;
-    document.getElementById('ref-link').innerText = refLink;  }
+    document.getElementById('ref-link').innerText = refLink;
+  }
+}
+function generateLoyaltyQR(userId) {
+  // Очищаем контейнер QR-кода
+  const qrContainer = document.getElementById('qrcode');
+  qrContainer.innerHTML = '';
+  
+  // Данные для QR-кода (ссылка на карту или ID)
+  const qrData = JSON.stringify({
+    type: 'loyalty_card',
+    userId: userId,
+    card: String(userId).padStart(12, '0'),
+    app: 'ЕдаТут'
+  });
+  
+  // Создаем QR-код
+  try {
+    new QRCode(qrContainer, {
+      text: qrData,
+      width: 128,
+      height: 128,
+      colorDark: '#1a1a2e',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  } catch (e) {
+    console.error('Ошибка генерации QR:', e);
+    qrContainer.innerHTML = '<div style="padding:20px;text-align:center">QR</div>';
+  }
 }
 
 window.copyRefLink = function() {
@@ -58,7 +85,6 @@ window.copyRefLink = function() {
   });
 }
 
-// Меню
 async function loadMenu() {
   try {
     const res = await fetch('/api/menu');
@@ -70,8 +96,7 @@ async function loadMenu() {
 }
 
 function renderMenu(filterCat, searchTerm = '') {
-  const grid = document.getElementById('menu-grid');
-  let items = menu;
+  const grid = document.getElementById('menu-grid');  let items = menu;
   
   if (filterCat !== 'all') items = items.filter(i => i.category === filterCat);
   if (searchTerm) items = items.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -96,7 +121,8 @@ function renderMenu(filterCat, searchTerm = '') {
   `).join('');
 }
 
-function setupCategories() {  document.querySelectorAll('.cat-btn').forEach(btn => {
+function setupCategories() {
+  document.querySelectorAll('.cat-btn').forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -115,13 +141,11 @@ function setupSearch() {
   });
 }
 
-// Корзина
 window.addToCart = function(id) {
   const item = menu.find(i => i.id === id);
   const existing = cart.find(i => i.id === id);
   if (existing) existing.qty++;
-  else cart.push({ ...item, qty: 1 });
-  updateCartUI();
+  else cart.push({ ...item, qty: 1 });  updateCartUI();
   tg.HapticFeedback.impactOccurred('light');
 };
 
@@ -129,12 +153,10 @@ function updateCartUI() {
   const count = cart.reduce((sum, i) => sum + i.qty, 0);
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
   
-  // Обновляем бейдж
   const badge = document.getElementById('nav-cart-badge');
   badge.innerText = count;
   badge.style.display = count > 0 ? 'flex' : 'none';
   
-  // Обновляем страницу корзины
   document.getElementById('cart-total-display').innerText = total + ' ₽';
   
   const list = document.getElementById('cart-items-list');
@@ -145,7 +167,8 @@ function updateCartUI() {
       <div class="cart-item-row">
         <div>
           <div style="font-weight:600">${item.name}</div>
-          <div style="font-size:13px;color:#888">x${item.qty}</div>        </div>
+          <div style="font-size:13px;color:#888">x${item.qty}</div>
+        </div>
         <div style="font-weight:bold;color:var(--accent-solid)">${item.price * item.qty} ₽</div>
       </div>
     `).join('');
