@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ЕдаТут</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Библиотека для QR-кода -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="loading">
@@ -21,35 +23,30 @@
     </div>
   </div>
 
-  <!-- СТРАНИЦА 1: ГЛАВНАЯ (МЕНЮ) -->
+  <!-- СТРАНИЦА 1: ГЛАВНАЯ -->
   <div id="page-home" class="page active">
     <header class="top-header">
       <h1>Меню</h1>
     </header>
     
-    <!-- БЕГУЩАЯ СТРОКА -->
     <div class="marquee-container">
       <div class="marquee-track">
         <div class="marquee-group">
           <span>🔥 СКИДКИ 50%</span><span class="separator">•</span>
           <span>🚀 ДОСТАВКА 15 МИН</span><span class="separator">•</span>
           <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="separator">•</span>
-          <span>⚡ ЗАКАЖИ СЕЙЧАС</span><span class="separator">•</span>
         </div>
         <div class="marquee-group">
           <span>🔥 СКИДКИ 50%</span><span class="separator">•</span>
           <span>🚀 ДОСТАВКА 15 МИН</span><span class="separator">•</span>
           <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="separator">•</span>
-          <span>⚡ ЗАКАЖИ СЕЙЧАС</span><span class="separator">•</span>
         </div>
       </div>
     </div>
 
-    <!-- ПОИСК (Внутри страницы) -->
     <div class="search-bar">
-      <input type="text" id="search-input" placeholder="🔍 Найти бургер или пиццу...">    </div>
-
-    <!-- КАТЕГОРИИ -->
+      <input type="text" id="search-input" placeholder="🔍 Найти блюдо...">
+    </div>
     <div class="categories-container">
       <button class="cat-btn active" data-cat="all">🔥 Все</button>
       <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>
@@ -58,15 +55,12 @@
       <button class="cat-btn" data-cat="fry">🍟 Фритюр</button>
     </div>
 
-    <!-- ТОВАРЫ -->
     <main id="menu-grid" class="menu-grid"></main>
   </div>
 
-  <!-- СТРАНИЦА 2: КОРЗИНА (Вместо модального окна, теперь это страница) -->
+  <!-- СТРАНИЦА 2: КОРЗИНА -->
   <div id="page-cart" class="page">
-    <header class="top-header">
-      <h1>Корзина</h1>
-    </header>
+    <header class="top-header"><h1>Корзина</h1></header>
     <div class="page-content cart-page-content">
       <div id="cart-items-list" class="cart-items-list"></div>
       <div class="cart-summary">
@@ -83,9 +77,7 @@
 
   <!-- СТРАНИЦА 3: ЗАКАЗЫ -->
   <div id="page-orders" class="page">
-    <header class="top-header">
-      <h1>Мои заказы</h1>
-    </header>
+    <header class="top-header"><h1>Мои заказы</h1></header>
     <div class="page-content">
       <div class="empty-state">📦 У вас пока нет активных заказов</div>
       <div class="orders-history">
@@ -96,36 +88,54 @@
           </div>
           <div class="order-items">Чизбургер Классик x2</div>
           <div class="order-footer">
-            <span class="order-date">Вчера</span>            <span class="order-price">700 ₽</span>
+            <span class="order-date">Вчера</span>
+            <span class="order-price">700 ₽</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- СТРАНИЦА 4: ПРОФИЛЬ -->
-  <div id="page-profile" class="page">
-    <header class="top-header">
-      <h1>Профиль</h1>
-    </header>
-    <div class="page-content">
+  <!-- СТРАНИЦА 4: ПРОФИЛЬ (С КАРТОЙ ЛОЯЛЬНОСТИ) -->  <div id="page-profile" class="page">
+    <header class="top-header"><h1>Профиль</h1></header>
+    <div class="page-content profile-page-content">
+      
+      <!-- Шапка профиля -->
       <div class="profile-header">
         <div class="avatar-circle">👤</div>
         <div class="user-name" id="profile-name">Загрузка...</div>
         <div class="user-id" id="profile-id">ID: ...</div>
       </div>
 
+      <!-- Статистика -->
       <div class="stats-row">
         <div class="stat-card">
-          <div class="stat-value">0 ₽</div>
+          <div class="stat-value" id="bonus-points">0 ₽</div>
           <div class="stat-label">Бонусы</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value">1</div>
+          <div class="stat-value" id="orders-count">1</div>
           <div class="stat-label">Заказы</div>
         </div>
       </div>
 
+      <!-- НАКОПИТЕЛЬНАЯ КАРТА С QR -->
+      <div class="loyalty-card">
+        <div class="card-header">
+          <div class="card-logo">🍔 ЕдаТут</div>
+          <div class="card-status">Active</div>
+        </div>
+        <div class="card-number" id="card-number">•••• •••• •••• 0000</div>
+        <div class="card-qr-container">
+          <div id="qrcode"></div>
+        </div>
+        <div class="card-footer">
+          <span class="card-label">Накопительная карта</span>
+          <span class="card-points">5% кэшбэк</span>
+        </div>
+      </div>
+
+      <!-- ПРОМО (перенесено вниз) -->
       <div class="referral-block">
         <div class="ref-title">🎁 Пригласи друга</div>
         <div class="ref-subtitle">100₽ за каждого!</div>
@@ -133,19 +143,20 @@
         <button class="btn-copy" onclick="copyRefLink()">Копировать</button>
       </div>
 
+      <!-- Кнопки действий -->
       <div class="profile-actions">
-        <button class="action-btn">💬 Поддержка</button>
-        <button class="action-btn">⚙️ Настройки</button>
+        <button class="action-btn">💬 Поддержка</button>        <button class="action-btn">⚙️ Настройки</button>
       </div>
     </div>
   </div>
 
-  <!-- НИЖНЯЯ НАВИГАЦИЯ (TABS) -->
+  <!-- НИЖНЯЯ НАВИГАЦИЯ -->
   <nav class="bottom-nav">
     <button class="nav-item active" data-target="page-home">
       <span class="nav-icon">🏠</span>
       <span class="nav-label">Главная</span>
-    </button>    <button class="nav-item" data-target="page-orders">
+    </button>
+    <button class="nav-item" data-target="page-orders">
       <span class="nav-icon">📦</span>
       <span class="nav-label">Заказы</span>
     </button>
