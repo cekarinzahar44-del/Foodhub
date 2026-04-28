@@ -9,68 +9,65 @@
 </head>
 <body class="loading">
 
-  <!-- 1. ЗАСТАВКА (SPLASH SCREEN) -->
-  <div id="splash-screen" class="splash-v2">
-    <div class="splash-particles">
-      <span class="burger-particle">🍔</span><span class="burger-particle">🍔</span><span class="burger-particle">🍔</span><span class="burger-particle">🍔</span>
-      <span class="burger-particle">🍔</span><span class="burger-particle">🍔</span><span class="burger-particle">🍔</span><span class="burger-particle">🍔</span>
-    </div>
-    <div class="splash-content-v2">
+  <!-- ЗАСТАВКА -->
+  <div id="splash-screen">
+    <div class="splash-content">
       <div class="logo-container">
-        <div class="logo-glow"></div>
-        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="ЕдаТут" class="splash-logo-v2">
-        <div class="logo-ring"></div>
+        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Лого" class="splash-logo">
       </div>
-      <h1 class="splash-title-v2"><span class="letter">Е</span><span class="letter">д</span><span class="letter">а</span><span class="letter">Т</span><span class="letter">у</span><span class="letter">т</span></h1>
+      <h1 class="splash-title">ЕдаТут</h1>
       <div class="tagline">Быстро. Вкусно. Удобно.</div>
-      <div class="splash-loader-v2"><div class="loader-bar"></div></div>
+      <div class="loader"></div>
     </div>
   </div>
 
-  <!-- 2. ШАПКА -->
-  <header class="app-header">
-    <!-- Бегущая строка (Бесшовная) -->
-    <div class="marquee-wrapper">
+  <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+  <div id="main-app">
+    
+    <!-- Бегущая строка -->
+    <div class="marquee-header">
       <div class="marquee-track">
-        <!-- Дублируем контент 3 раза для идеальной склейки -->
         <div class="marquee-content">
-          <span>🔥 СКИДКИ ДО 50%</span><span class="dot">•</span><span>🚀 ДОСТАВКА 15 МИН</span><span class="dot">•</span>
-          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="dot">•</span><span>⚡ ЗАКАЖИ СЕЙЧАС</span><span class="dot">•</span>
-          <span>🎁 ПОДАРОК</span><span class="dot">•</span><span>⭐ 1000+ ОТЗЫВОВ</span><span class="dot">•</span>
-          <span>💰 ВЫГОДНЫЕ СЕТЫ</span><span class="dot">•</span>
+          <span>🔥 СКИДКИ 50%</span><span class="dot">•</span>
+          <span>🚀 ДОСТАВКА 15 МИН</span><span class="dot">•</span>
+          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="dot">•</span>
+          <span>⚡ ЗАКАЖИ СЕЙЧАС</span><span class="dot">•</span>
+          <span>🎁 ПОДАРОК</span><span class="dot">•</span>
+          <span>⭐ 1000+ ОТЗЫВОВ</span><span class="dot">•</span>
         </div>
         <div class="marquee-content">
-          <span>🔥 СКИДКИ ДО 50%</span><span class="dot">•</span><span>🚀 ДОСТАВКА 15 МИН</span><span class="dot">•</span>
-          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="dot">•</span><span>⚡ ЗАКАЖИ СЕЙЧАС</span><span class="dot">•</span>
-          <span>🎁 ПОДАРОК</span><span class="dot">•</span><span>⭐ 1000+ ОТЗЫВОВ</span><span class="dot">•</span>
-          <span>💰 ВЫГОДНЫЕ СЕТЫ</span><span class="dot">•</span>
+          <span>🔥 СКИДКИ 50%</span><span class="dot">•</span>
+          <span>🚀 ДОСТАВКА 15 МИН</span><span class="dot">•</span>
+          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="dot">•</span>
+          <span>⚡ ЗАКАЖИ СЕЙЧАС</span><span class="dot">•</span>
+          <span>🎁 ПОДАРОК</span><span class="dot">•</span>
+          <span>⭐ 1000+ ОТЗЫВОВ</span><span class="dot">•</span>
         </div>
       </div>
     </div>
-    <!-- Навигация (Профиль + Корзина) -->
-    <div class="header-nav">
-      <button id="profile-btn" class="nav-btn">👤</button>
+
+    <!-- Навигация -->
+    <div class="app-nav">      <button id="profile-btn" class="nav-btn">👤</button>
+      <span class="nav-title">Меню</span>
       <button id="cart-btn" class="nav-btn cart-btn hidden">
-        <span id="cart-count">0</span>
+        🛒 <span id="cart-count">0</span>
       </button>
     </div>
-  </header>
 
-  <!-- 3. КАТЕГОРИИ -->
-  <div class="categories-container">
-    <button class="cat-btn active" data-cat="all">🔥 Хиты</button>
-    <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>
-    <button class="cat-btn" data-cat="pizza">🍕 Пицца</button>
-    <button class="cat-btn" data-cat="drink">🥤 Напитки</button>
-    <button class="cat-btn" data-cat="fry">🍟 Фритюр</button>
+    <!-- Категории -->
+    <div class="categories-container">
+      <button class="cat-btn active" data-cat="all">🔥 Все</button>
+      <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>
+      <button class="cat-btn" data-cat="pizza">🍕 Пицца</button>
+      <button class="cat-btn" data-cat="drink">🥤 Напитки</button>
+      <button class="cat-btn" data-cat="fry">🍟 Фритюр</button>
+    </div>
+
+    <!-- Сетка товаров -->
+    <main id="menu-grid" class="menu-grid"></main>
   </div>
 
-  <!-- 4. МЕНЮ -->
-  <main id="menu-grid" class="menu-grid">
-    <!-- Товары загрузятся через JS -->
-  </main>
-
-  <!-- 5. КОРЗИНА -->
+  <!-- Корзина -->
   <div id="cart-modal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -87,7 +84,7 @@
     </div>
   </div>
 
-  <!-- 6. МЕНЮ ПОЛЬЗОВАТЕЛЯ -->
+  <!-- Профиль -->
   <div id="profile-modal" class="modal hidden">
     <div class="modal-content profile-modal-content">
       <div class="modal-header">
@@ -96,12 +93,10 @@
       </div>
       <div class="profile-menu">
         <div class="profile-item">📦 Мои заказы</div>
-        <div class="profile-item">❤️ Избранное</div>        <div class="profile-item">⚙️ Настройки</div>
-        <div class="profile-item">🎁 Промокоды</div>
-        <div class="profile-item">📞 Поддержка</div>
+        <div class="profile-item">❤️ Избранное</div>
+        <div class="profile-item">⚙️ Настройки</div>
       </div>
-    </div>
-  </div>
+    </div>  </div>
 
   <script src="app.js"></script>
 </body>
