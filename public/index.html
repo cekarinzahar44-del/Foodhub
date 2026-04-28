@@ -9,7 +9,7 @@
 </head>
 <body class="loading">
 
-  <!-- ЗАСТАВКА -->
+  <!-- ЗАСТАВКА (SPASH SCREEN) -->
   <div id="splash-screen">
     <div class="splash-content">
       <div class="logo-container">
@@ -24,37 +24,51 @@
   <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
   <div id="main-app">
     
-    <!-- Бегущая строка -->
-    <div class="marquee-header">
+    <!-- БЕГУЩАЯ СТРОКА (БЕСШОВНАЯ) -->
+    <div class="marquee-container">
       <div class="marquee-track">
-        <div class="marquee-content">
-          <span>🔥 СКИДКИ 50%</span><span class="dot">•</span>
-          <span>🚀 ДОСТАВКА 15 МИН</span><span class="dot">•</span>
-          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="dot">•</span>
-          <span>⚡ ЗАКАЖИ СЕЙЧАС</span><span class="dot">•</span>
-          <span>🎁 ПОДАРОК</span><span class="dot">•</span>
-          <span>⭐ 1000+ ОТЗЫВОВ</span><span class="dot">•</span>
+        <!-- Группа 1 -->
+        <div class="marquee-group">
+          <span>🔥 СКИДКИ 50%</span>
+          <span class="separator">•</span>
+          <span>🚀 ДОСТАВКА 15 МИН</span>
+          <span class="separator">•</span>
+          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span>
+          <span class="separator">•</span>
+          <span>⚡ ЗАКАЖИ СЕЙЧАС</span>
+          <span class="separator">•</span>
+          <span>🎁 ПОДАРОК</span>
+          <span class="separator">•</span>
+          <span>⭐ 1000+ ОТЗЫВОВ</span>
+          <span class="separator">•</span>
         </div>
-        <div class="marquee-content">
-          <span>🔥 СКИДКИ 50%</span><span class="dot">•</span>
-          <span>🚀 ДОСТАВКА 15 МИН</span><span class="dot">•</span>
-          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="dot">•</span>
-          <span>⚡ ЗАКАЖИ СЕЙЧАС</span><span class="dot">•</span>
-          <span>🎁 ПОДАРОК</span><span class="dot">•</span>
-          <span>⭐ 1000+ ОТЗЫВОВ</span><span class="dot">•</span>
+        <!-- Группа 2 (Точная копия для зацикливания) -->
+        <div class="marquee-group">
+          <span>🔥 СКИДКИ 50%</span>
+          <span class="separator">•</span>
+          <span>🚀 ДОСТАВКА 15 МИН</span>
+          <span class="separator">•</span>          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span>
+          <span class="separator">•</span>
+          <span>⚡ ЗАКАЖИ СЕЙЧАС</span>
+          <span class="separator">•</span>
+          <span>🎁 ПОДАРОК</span>
+          <span class="separator">•</span>
+          <span>⭐ 1000+ ОТЗЫВОВ</span>
+          <span class="separator">•</span>
         </div>
       </div>
     </div>
 
-    <!-- Навигация -->
-    <div class="app-nav">      <button id="profile-btn" class="nav-btn">👤</button>
+    <!-- НАВИГАЦИЯ -->
+    <div class="app-nav">
+      <button id="profile-btn" class="nav-btn">👤</button>
       <span class="nav-title">Меню</span>
       <button id="cart-btn" class="nav-btn cart-btn hidden">
         🛒 <span id="cart-count">0</span>
       </button>
     </div>
 
-    <!-- Категории -->
+    <!-- КАТЕГОРИИ -->
     <div class="categories-container">
       <button class="cat-btn active" data-cat="all">🔥 Все</button>
       <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>
@@ -63,11 +77,11 @@
       <button class="cat-btn" data-cat="fry">🍟 Фритюр</button>
     </div>
 
-    <!-- Сетка товаров -->
+    <!-- ТОВАРЫ -->
     <main id="menu-grid" class="menu-grid"></main>
   </div>
 
-  <!-- Корзина -->
+  <!-- КОРЗИНА -->
   <div id="cart-modal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -83,8 +97,7 @@
       </div>
     </div>
   </div>
-
-  <!-- Профиль -->
+  <!-- ПРОФИЛЬ -->
   <div id="profile-modal" class="modal hidden">
     <div class="modal-content profile-modal-content">
       <div class="modal-header">
@@ -96,7 +109,8 @@
         <div class="profile-item">❤️ Избранное</div>
         <div class="profile-item">⚙️ Настройки</div>
       </div>
-    </div>  </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
