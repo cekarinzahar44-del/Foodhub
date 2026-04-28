@@ -21,8 +21,10 @@
     </div>
   </div>
 
-  <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
-  <div id="main-app">
+  <!-- ГЛАВНОЕ МЕНЮ (СТРАНИЦА 1) -->
+  <div id="main-app" class="page active">
+    
+    <!-- БЕГУЩАЯ СТРОКА -->
     <div class="marquee-container">
       <div class="marquee-track">
         <div class="marquee-group">
@@ -40,83 +42,93 @@
       </div>
     </div>
 
+    <!-- НАВИГАЦИЯ -->
     <div class="app-nav">
       <button id="profile-btn" class="nav-btn">👤</button>
       <span class="nav-title">Меню</span>
-      <button id="cart-btn" class="nav-btn cart-btn hidden">🛒 <span id="cart-count">0</span></button>
+      <button id="cart-btn" class="nav-btn cart-btn hidden">
+        🛒 <span id="cart-count">0</span>      </button>
     </div>
 
+    <!-- КАТЕГОРИИ -->
     <div class="categories-container">
-      <button class="cat-btn active" data-cat="all">🔥 Все</button>      <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>
+      <button class="cat-btn active" data-cat="all">🔥 Все</button>
+      <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>
       <button class="cat-btn" data-cat="pizza">🍕 Пицца</button>
       <button class="cat-btn" data-cat="drink">🥤 Напитки</button>
       <button class="cat-btn" data-cat="fry">🍟 Фритюр</button>
     </div>
 
+    <!-- ТОВАРЫ -->
     <main id="menu-grid" class="menu-grid"></main>
   </div>
 
-  <!-- КОРЗИНА -->
+  <!-- ПРОФИЛЬ (СТРАНИЦА 2) -->
+  <div id="profile-page" class="page">
+    <header class="page-header">
+      <button id="back-btn" class="back-btn">← Назад</button>
+      <span class="page-title">Профиль</span>
+      <div class="spacer"></div>
+    </header>
+    
+    <div class="page-content">
+      <div class="profile-header">
+        <div class="avatar-circle">👤</div>
+        <div class="user-name" id="profile-name">Загрузка...</div>
+        <div class="user-id" id="profile-id">ID: ...</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-value">0 ₽</div>
+          <div class="stat-label">Бонусы</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="orders-count">0</div>
+          <div class="stat-label">Заказы</div>
+        </div>
+      </div>
+
+      <div class="referral-block">
+        <div class="ref-title">🎁 Пригласи друга</div>
+        <div class="ref-subtitle">100₽ за каждого!</div>
+        <div class="ref-link-box" id="ref-link">https://t.me/...</div>
+        <button class="btn-copy" onclick="copyRefLink()">Копировать</button>
+      </div>
+
+      <div class="profile-actions">        <button class="action-btn">📦 Мои заказы</button>
+        <button class="action-btn">💬 Поддержка</button>
+      </div>
+
+      <div class="orders-history">
+        <div class="order-card">
+          <div class="order-header">
+            <span class="order-id">Заказ #1</span>
+            <span class="order-status status-new">Новый</span>
+          </div>
+          <div class="order-items">Чизбургер Классик x1</div>
+          <div class="order-footer">
+            <span class="order-date">Сегодня</span>
+            <span class="order-price">350 ₽</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- КОРЗИНА (Осталась модальным окном, так удобнее) -->
   <div id="cart-modal" class="modal hidden">
     <div class="modal-content">
-      <div class="modal-header"><h2>Корзина</h2><button id="close-cart" class="modal-close">&times;</button></div>
+      <div class="modal-header">
+        <h2>Корзина</h2>
+        <button id="close-cart" class="modal-close">&times;</button>
+      </div>
       <div id="cart-items" class="cart-items"></div>
       <div class="cart-footer">
         <div class="cart-total">Итого: <span id="cart-total">0</span> ₽</div>
         <input type="text" id="address" class="input-field" placeholder="Адрес доставки">
         <textarea id="comment" class="input-field" placeholder="Комментарий"></textarea>
         <button id="submit-order" class="btn-primary">Оформить заказ</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ПРОФИЛЬ (СВЕТЛАЯ ТЕМА + ФУНКЦИОНАЛ RZ SHOP) -->
-  <div id="profile-modal" class="modal hidden">
-    <div class="modal-content profile-light">
-      <div class="modal-header"><h2>Профиль</h2><button id="close-profile" class="modal-close">&times;</button></div>
-      
-      <div class="profile-body">
-        <div class="profile-header">
-          <div class="avatar-circle">👤</div>
-          <div class="user-name" id="profile-name">Загрузка...</div>
-          <div class="user-id" id="profile-id">ID: ...</div>
-        </div>
-
-        <div class="stats-row">
-          <div class="stat-card">
-            <div class="stat-value">0 ₽</div>
-            <div class="stat-label">Бонусы</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="orders-count">0</div>
-            <div class="stat-label">Заказы</div>
-          </div>
-        </div>
-
-        <div class="referral-block">
-          <div class="ref-title">🎁 Пригласи друга</div>
-          <div class="ref-subtitle">100₽ за каждого!</div>
-          <div class="ref-link-box" id="ref-link">https://t.me/...</div>          <button class="btn-copy" onclick="copyRefLink()">Копировать</button>
-        </div>
-
-        <div class="profile-actions">
-          <button class="action-btn">📦 Мои заказы</button>
-          <button class="action-btn">💬 Поддержка</button>
-        </div>
-
-        <div class="orders-history">
-          <div class="order-card">
-            <div class="order-header">
-              <span class="order-id">Заказ #1</span>
-              <span class="order-status status-new">Новый</span>
-            </div>
-            <div class="order-items">Чизбургер Классик x1</div>
-            <div class="order-footer">
-              <span class="order-date">Сегодня</span>
-              <span class="order-price">350 ₽</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
