@@ -12,7 +12,6 @@
   <!-- 1. ЗАСТАВКА (SPLASH SCREEN) -->
   <div id="splash-screen" class="splash-v2">
     <div class="splash-particles">
-      <!-- Летающие бургеры -->
       <span class="burger-particle">🍔</span>
       <span class="burger-particle">🍔</span>
       <span class="burger-particle">🍔</span>
@@ -26,8 +25,8 @@
     <div class="splash-content-v2">
       <div class="logo-container">
         <div class="logo-glow"></div>
-        <!-- ВАЖНО: Замени src на ссылку твоего логотипа, если загрузишь его -->
-        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Лого" class="splash-logo-v2">
+        <!-- Временный логотип (иконка) -->
+        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="ЕдаТут" class="splash-logo-v2">
         <div class="logo-ring"></div>
       </div>
       
@@ -48,22 +47,39 @@
     </div>
   </div>
 
-  <!-- 2. ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
-  <header class="app-header">
-    <div class="logo">
-      <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="ЕдаТут" class="logo-icon">
-      <span class="logo-text">ЕдаТут</span>
+  <!-- 2. ОСНОВНОЕ ПРИЛОЖЕНИЕ -->  
+  <!-- ЖИВАЯ ШАПКА (АНИМАЦИЯ) -->
+  <header class="dynamic-header">
+    <!-- Левая часть: Логотип -->
+    <div class="header-logo">
+      <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="logo">
+      <span class="brand-name">ЕдаТут</span>
     </div>
-    <button id="cart-btn" class="cart-btn hidden">
-       <span id="cart-count">0</span>
-    </button>
+
+    <!-- Правая часть: Цепочка анимации + Корзина -->
+    <div class="header-right">
+      <div class="chain-container">
+        <!-- 1. Бургер (тянет) -->
+        <span class="chain-item chain-burger">🍔</span>
+        <!-- 2. Слоган (тянется) -->
+        <span class="chain-item chain-slogan">Закажи у нас!</span>
+        <!-- 3. Пицца (замыкает) -->
+        <span class="chain-item chain-pizza">🍕</span>
+      </div>
+      
+      <!-- Кнопка корзины (откуда всё вылетает) -->
+      <button id="cart-btn" class="cart-btn hidden">
+        <span id="cart-count">0</span>
+      </button>
+    </div>
   </header>
 
+  <!-- Сетка меню -->
   <main id="menu-grid" class="menu-grid">
-    <!-- Сюда загрузятся товары -->
+    <!-- Товары загрузятся через JS -->
   </main>
 
-  <!-- Корзина -->
+  <!-- Модальное окно корзины -->
   <div id="cart-modal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -80,6 +96,5 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
-</body>
+  <script src="app.js"></script></body>
 </html>
