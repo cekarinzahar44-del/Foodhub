@@ -29,9 +29,43 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 body.loaded #splash-screen { animation: fadeOut 0.5s ease forwards; }
 @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
-#main-app { display: none; }
-body.loaded #main-app { display: block; animation: fadeIn 0.5s ease; }
+
+/* === СИСТЕМА СТРАНИЦ === */
+.page {
+  display: none;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+.page.active { display: block; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Шапка страницы профиля */
+.page-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;  z-index: 100;
+}
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent-solid);
+  cursor: pointer;
+  padding: 8px 0;
+  margin-right: 12px;
+}
+.page-title {
+  font-size: 18px;
+  font-weight: 700;
+  flex: 1;
+  text-align: center;
+}
+.spacer { width: 60px; } /* Компенсация ширины кнопки назад для центровки */
 
 /* === БЕГУЩАЯ СТРОКА === */
 .marquee-container { width: 100%; overflow: hidden; white-space: nowrap; background: linear-gradient(90deg, #ff6b6b, #ff8e53, #ff6b6b); background-size: 200% 100%; animation: gradientMarquee 3s ease infinite; height: 40px; display: flex; align-items: center; box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2); }
@@ -47,7 +81,8 @@ body.loaded #main-app { display: block; animation: fadeIn 0.5s ease; }
 .nav-btn { background: #fff; border: 1px solid var(--border); width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); transition: transform 0.2s; }
 .nav-btn:active { transform: scale(0.92); }
 .nav-title { font-size: 18px; font-weight: 700; }
-.cart-btn { color: var(--accent-solid); font-weight: bold; width: auto; padding: 0 12px; gap: 6px; }.cart-btn.hidden { display: none; }
+.cart-btn { color: var(--accent-solid); font-weight: bold; width: auto; padding: 0 12px; gap: 6px; }
+.cart-btn.hidden { display: none; }
 
 /* === КАТЕГОРИИ === */
 .categories-container { display: flex; gap: 10px; padding: 8px 16px 16px; overflow-x: auto; scrollbar-width: none; }
@@ -61,8 +96,7 @@ body.loaded #main-app { display: block; animation: fadeIn 0.5s ease; }
 @media (min-width: 480px) { .menu-grid { grid-template-columns: repeat(2, 1fr); } }
 .menu-item { background: var(--card-bg); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s; cursor: pointer; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.02); }
 .menu-item:active { transform: scale(0.98); }
-.item-image { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #f0f0f0; }
-.item-content { padding: 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.item-image { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #f0f0f0; }.item-content { padding: 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .item-name { font-size: 16px; font-weight: 700; }
 .item-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 8px; }
 .item-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
@@ -90,13 +124,12 @@ body.loaded #main-app { display: block; animation: fadeIn 0.5s ease; }
 textarea.input-field { resize: none; min-height: 80px; }
 .btn-primary { background: var(--accent-gradient); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4); }
 
-/* === ПРОФИЛЬ (СВЕТЛАЯ ТЕМА + RZ SHOP LAYOUT) === */
-.profile-light { background: var(--bg-primary); color: var(--text-primary); }
-.profile-body { padding-bottom: 20px; }
-
+/* === ПРОФИЛЬ (ВНУТРЕННОСТИ) === */
+.page-content { padding: 20px 16px; }
 .profile-header { text-align: center; margin-bottom: 20px; }
 .avatar-circle { width: 80px; height: 80px; background: var(--accent-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 10px; box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3); }
-.user-name { font-size: 20px; font-weight: bold; margin-bottom: 4px; }.user-id { color: var(--text-secondary); font-size: 14px; }
+.user-name { font-size: 20px; font-weight: bold; margin-bottom: 4px; }
+.user-id { color: var(--text-secondary); font-size: 14px; }
 
 .stats-row { display: flex; gap: 12px; margin-bottom: 20px; }
 .stat-card { flex: 1; background: var(--card-bg); padding: 16px; border-radius: 16px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
@@ -113,7 +146,6 @@ textarea.input-field { resize: none; min-height: 80px; }
 .profile-actions { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 .action-btn { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--border); padding: 16px; border-radius: 12px; text-align: left; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-sm); transition: background 0.2s; }
 .action-btn:active { background: #F0F2F5; }
-
 .orders-history { display: flex; flex-direction: column; gap: 10px; }
 .order-card { background: var(--card-bg); padding: 16px; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
 .order-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
