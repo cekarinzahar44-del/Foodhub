@@ -9,7 +9,7 @@
 </head>
 <body class="loading">
 
-  <!-- ЗАСТАВКА (SPASH SCREEN) -->
+  <!-- ЗАСТАВКА -->
   <div id="splash-screen">
     <div class="splash-content">
       <div class="logo-container">
@@ -23,71 +23,43 @@
 
   <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
   <div id="main-app">
-    
-    <!-- БЕГУЩАЯ СТРОКА (БЕСШОВНАЯ) -->
     <div class="marquee-container">
       <div class="marquee-track">
-        <!-- Группа 1 -->
         <div class="marquee-group">
-          <span>🔥 СКИДКИ 50%</span>
-          <span class="separator">•</span>
-          <span>🚀 ДОСТАВКА 15 МИН</span>
-          <span class="separator">•</span>
-          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span>
-          <span class="separator">•</span>
-          <span>⚡ ЗАКАЖИ СЕЙЧАС</span>
-          <span class="separator">•</span>
-          <span>🎁 ПОДАРОК</span>
-          <span class="separator">•</span>
-          <span>⭐ 1000+ ОТЗЫВОВ</span>
-          <span class="separator">•</span>
+          <span>🔥 СКИДКИ 50%</span><span class="separator">•</span>
+          <span>🚀 ДОСТАВКА 15 МИН</span><span class="separator">•</span>
+          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="separator">•</span>
+          <span>⚡ ЗАКАЖИ СЕЙЧАС</span><span class="separator">•</span>
         </div>
-        <!-- Группа 2 (Точная копия для зацикливания) -->
         <div class="marquee-group">
-          <span>🔥 СКИДКИ 50%</span>
-          <span class="separator">•</span>
-          <span>🚀 ДОСТАВКА 15 МИН</span>
-          <span class="separator">•</span>          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span>
-          <span class="separator">•</span>
-          <span>⚡ ЗАКАЖИ СЕЙЧАС</span>
-          <span class="separator">•</span>
-          <span>🎁 ПОДАРОК</span>
-          <span class="separator">•</span>
-          <span>⭐ 1000+ ОТЗЫВОВ</span>
-          <span class="separator">•</span>
+          <span>🔥 СКИДКИ 50%</span><span class="separator">•</span>
+          <span>🚀 ДОСТАВКА 15 МИН</span><span class="separator">•</span>
+          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="separator">•</span>
+          <span>⚡ ЗАКАЖИ СЕЙЧАС</span><span class="separator">•</span>
         </div>
       </div>
     </div>
 
-    <!-- НАВИГАЦИЯ -->
     <div class="app-nav">
       <button id="profile-btn" class="nav-btn">👤</button>
       <span class="nav-title">Меню</span>
-      <button id="cart-btn" class="nav-btn cart-btn hidden">
-        🛒 <span id="cart-count">0</span>
-      </button>
+      <button id="cart-btn" class="nav-btn cart-btn hidden">🛒 <span id="cart-count">0</span></button>
     </div>
 
-    <!-- КАТЕГОРИИ -->
     <div class="categories-container">
-      <button class="cat-btn active" data-cat="all">🔥 Все</button>
-      <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>
+      <button class="cat-btn active" data-cat="all">🔥 Все</button>      <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>
       <button class="cat-btn" data-cat="pizza">🍕 Пицца</button>
       <button class="cat-btn" data-cat="drink">🥤 Напитки</button>
       <button class="cat-btn" data-cat="fry">🍟 Фритюр</button>
     </div>
 
-    <!-- ТОВАРЫ -->
     <main id="menu-grid" class="menu-grid"></main>
   </div>
 
   <!-- КОРЗИНА -->
   <div id="cart-modal" class="modal hidden">
     <div class="modal-content">
-      <div class="modal-header">
-        <h2>Корзина</h2>
-        <button id="close-cart" class="modal-close">&times;</button>
-      </div>
+      <div class="modal-header"><h2>Корзина</h2><button id="close-cart" class="modal-close">&times;</button></div>
       <div id="cart-items" class="cart-items"></div>
       <div class="cart-footer">
         <div class="cart-total">Итого: <span id="cart-total">0</span> ₽</div>
@@ -97,17 +69,54 @@
       </div>
     </div>
   </div>
-  <!-- ПРОФИЛЬ -->
+
+  <!-- ПРОФИЛЬ (СВЕТЛАЯ ТЕМА + ФУНКЦИОНАЛ RZ SHOP) -->
   <div id="profile-modal" class="modal hidden">
-    <div class="modal-content profile-modal-content">
-      <div class="modal-header">
-        <h2>Профиль</h2>
-        <button id="close-profile" class="modal-close">&times;</button>
-      </div>
-      <div class="profile-menu">
-        <div class="profile-item">📦 Мои заказы</div>
-        <div class="profile-item">❤️ Избранное</div>
-        <div class="profile-item">⚙️ Настройки</div>
+    <div class="modal-content profile-light">
+      <div class="modal-header"><h2>Профиль</h2><button id="close-profile" class="modal-close">&times;</button></div>
+      
+      <div class="profile-body">
+        <div class="profile-header">
+          <div class="avatar-circle">👤</div>
+          <div class="user-name" id="profile-name">Загрузка...</div>
+          <div class="user-id" id="profile-id">ID: ...</div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-value">0 ₽</div>
+            <div class="stat-label">Бонусы</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="orders-count">0</div>
+            <div class="stat-label">Заказы</div>
+          </div>
+        </div>
+
+        <div class="referral-block">
+          <div class="ref-title">🎁 Пригласи друга</div>
+          <div class="ref-subtitle">100₽ за каждого!</div>
+          <div class="ref-link-box" id="ref-link">https://t.me/...</div>          <button class="btn-copy" onclick="copyRefLink()">Копировать</button>
+        </div>
+
+        <div class="profile-actions">
+          <button class="action-btn">📦 Мои заказы</button>
+          <button class="action-btn">💬 Поддержка</button>
+        </div>
+
+        <div class="orders-history">
+          <div class="order-card">
+            <div class="order-header">
+              <span class="order-id">Заказ #1</span>
+              <span class="order-status status-new">Новый</span>
+            </div>
+            <div class="order-items">Чизбургер Классик x1</div>
+            <div class="order-footer">
+              <span class="order-date">Сегодня</span>
+              <span class="order-price">350 ₽</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
