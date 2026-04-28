@@ -30,11 +30,7 @@ body {
   display: flex; align-items: center; justify-content: center;
   z-index: 9999; overflow: hidden;
 }
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+@keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
 /* Летающие бургеры */
 .splash-particles { position: absolute; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
@@ -47,16 +43,11 @@ body {
 .burger-particle:nth-child(2) { left: 15%; animation-delay: 0.8s; animation-duration: 5s; font-size: 32px; }
 .burger-particle:nth-child(3) { left: 28%; animation-delay: 1.5s; animation-duration: 4s; font-size: 20px; }
 .burger-particle:nth-child(4) { left: 42%; animation-delay: 0.3s; animation-duration: 5.5s; font-size: 36px; }
-.burger-particle:nth-child(5) { left: 58%; animation-delay: 2s; animation-duration: 4.2s; font-size: 26px; }.burger-particle:nth-child(6) { left: 72%; animation-delay: 1s; animation-duration: 4.8s; font-size: 30px; }
+.burger-particle:nth-child(5) { left: 58%; animation-delay: 2s; animation-duration: 4.2s; font-size: 26px; }
+.burger-particle:nth-child(6) { left: 72%; animation-delay: 1s; animation-duration: 4.8s; font-size: 30px; }
 .burger-particle:nth-child(7) { left: 85%; animation-delay: 2.5s; animation-duration: 5.2s; font-size: 22px; }
 .burger-particle:nth-child(8) { left: 95%; animation-delay: 0.5s; animation-duration: 4.6s; font-size: 34px; }
-
-@keyframes riseBurger {
-  0% { transform: translateY(0) rotate(0deg) scale(0.6); opacity: 0; }
-  10% { opacity: 0.85; }
-  100% { transform: translateY(-110vh) rotate(360deg) scale(1.3); opacity: 0; }
-}
-
+@keyframes riseBurger { 0% { transform: translateY(0) rotate(0deg) scale(0.6); opacity: 0; } 10% { opacity: 0.85; } 100% { transform: translateY(-110vh) rotate(360deg) scale(1.3); opacity: 0; } }
 .logo-container { position: relative; width: 150px; height: 150px; margin: 0 auto 30px; display: flex; align-items: center; justify-content: center; }
 .logo-glow { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
@@ -82,21 +73,113 @@ body {
 .splash-v2.hide { animation: splashExit 0.5s ease 2.5s forwards; pointer-events: none; }
 @keyframes splashExit { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.5); visibility: hidden; } }
 
-/* === ХЕДЕР === */
-.app-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 4px 20px; position: sticky; top: 0; background: var(--bg-primary); z-index: 10; }
-.logo { display: flex; align-items: center; gap: 10px; }
-.logo-icon { width: 32px; height: 32px; object-fit: contain; }
-.logo-text { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
-.cart-btn { display: flex; align-items: center; gap: 6px; background: var(--accent); color: var(--accent-text); border: none; padding: 10px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; transition: transform var(--transition); }
-.cart-btn:active { transform: scale(0.98); }
+/* === ЖИВАЯ ШАПКА === */
+.dynamic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 4px 20px;
+  position: sticky;
+  top: 0;
+  background: var(--bg-primary);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-logo img { width: 32px; height: 32px; object-fit: contain; }
+.brand-name { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+
+.header-right {
+  display: flex;
+  align-items: center;}
+
+/* Контейнер цепочки (Бургер - Текст - Пицца) */
+.chain-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  /* Порядок элементов в HTML: Бургер, Текст, Пицца. */
+  /* Но чтобы "вылетало из корзины", нам нужно визуально выстроить их в линию. */
+  /* HTML order: Burger -> Slogan -> Pizza -> CartBtn */
+}
+
+/* Элементы цепочки */
+.chain-item {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  /* Стартуют СПРАВА (из-за кнопки корзины) */
+  transform: translateX(30px);
+  white-space: nowrap;
+}
+
+/* 1. Бургер (появляется первым, самый левый в цепочке) */
+.chain-burger {
+  font-size: 28px;
+  animation: slideOutFromCart 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation-delay: 3.2s;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  /* В цепочке он будет первым слева */
+  order: 1;
+}
+
+/* 2. Слоган (появляется вторым) */
+.chain-slogan {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  animation: slideOutFromCart 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation-delay: 3.35s;
+  order: 2;
+}
+
+/* 3. Пицца (появляется последней, замыкает у корзины) */
+.chain-pizza {
+  font-size: 26px;
+  animation: slideOutFromCart 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation-delay: 3.5s;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  order: 3;
+}
+@keyframes slideOutFromCart {
+  0% { opacity: 0; transform: translateX(20px) scale(0.8); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* Кнопка корзины */
+.cart-btn {
+  position: relative;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  transition: transform 0.2s;
+  z-index: 20;
+}
+.cart-btn:active { transform: scale(0.92); }
 .cart-btn.hidden { display: none; }
 
-/* === СЕТКА МЕНЮ === */
+/* === МЕНЮ === */
 .menu-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
 @media (min-width: 480px) { .menu-grid { grid-template-columns: repeat(2, 1fr); } }
 
 .menu-item { background: var(--bg-secondary); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; transition: box-shadow var(--transition), transform var(--transition); cursor: pointer; }
-.menu-item:active { transform: scale(0.99); }.menu-item:hover { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); }
+.menu-item:active { transform: scale(0.99); }
+.menu-item:hover { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); }
 .item-image { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #f0f0f0; }
 .item-content { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .item-name { font-size: 16px; font-weight: 600; line-height: 1.3; }
@@ -106,13 +189,12 @@ body {
 .add-btn { background: var(--accent); color: var(--accent-text); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
 .add-btn:active { transform: scale(0.9); }
 
-/* === КОРЗИНА === */
+/* === КОРЗИНА (МОДАЛКА) === */
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: flex-end; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
 .modal.hidden { display: none; }
 .modal-content { background: var(--bg-primary); width: 100%; max-width: 480px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 20px 16px 24px; max-height: 85vh; display: flex; flex-direction: column; animation: slideUp 0.3s ease; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
-.modal-header h2 { font-size: 18px; font-weight: 700; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }.modal-header h2 { font-size: 18px; font-weight: 700; }
 .modal-close { background: none; border: none; font-size: 28px; color: var(--text-secondary); cursor: pointer; padding: 4px 8px; line-height: 1; }
 .cart-items { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 4px; }
 .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
