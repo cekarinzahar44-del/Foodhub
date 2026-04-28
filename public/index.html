@@ -25,7 +25,6 @@
     <div class="splash-content-v2">
       <div class="logo-container">
         <div class="logo-glow"></div>
-        <!-- Временный логотип (иконка) -->
         <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="ЕдаТут" class="splash-logo-v2">
         <div class="logo-ring"></div>
       </div>
@@ -47,46 +46,57 @@
     </div>
   </div>
 
-  <!-- 2. ОСНОВНОЕ ПРИЛОЖЕНИЕ -->  
-  <!-- ЖИВАЯ ШАПКА (АНИМАЦИЯ) -->
-  <header class="dynamic-header">
-    <!-- Левая часть: Логотип -->
-    <div class="header-logo">
-      <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="logo">
-      <span class="brand-name">ЕдаТут</span>
-    </div>
-
-    <!-- Правая часть: Цепочка анимации + Корзина -->
-    <div class="header-right">
-      <div class="chain-container">
-        <!-- 1. Бургер (тянет) -->
-        <span class="chain-item chain-burger">🍔</span>
-        <!-- 2. Слоган (тянется) -->
-        <span class="chain-item chain-slogan">Закажи у нас!</span>
-        <!-- 3. Пицца (замыкает) -->
-        <span class="chain-item chain-pizza">🍕</span>
+  <!-- 2. БЕГУЩАЯ СТРОКА (МАРКИ) -->
+  <header class="marquee-header">    <div class="marquee-track">
+      <div class="marquee-content">
+        <span>🔥 СКИДКИ ДО 50%</span>
+        <span class="separator">•</span>
+        <span>🚀 ДОСТАВКА ЗА 15 МИНУТ</span>
+        <span class="separator">•</span>
+        <span>🍔 ЛУЧШИЕ БУРГЕРЫ В ГОРОДЕ</span>
+        <span class="separator">•</span>
+        <span>⚡ ЗАКАЖИ ПРЯМО СЕЙЧАС</span>
+        <span class="separator">•</span>
+        <span>🎁 ПОДАРОК К ПЕРВОМУ ЗАКАЗУ</span>
+        <span class="separator">•</span>
+        <span>⭐ 1000+ ДОВОЛЬНЫХ КЛИЕНТОВ</span>
+        <span class="separator">•</span>
+        <span>💰 ВЫГОДНЫЕ СЕТЫ</span>
+        <span class="separator">•</span>
+        <span>🔥 СКИДКИ ДО 50%</span>
+        <span class="separator">•</span>
+        <span>🚀 ДОСТАВКА ЗА 15 МИНУТ</span>
+        <span class="separator">•</span>
+        <span>🍔 ЛУЧШИЕ БУРГЕРЫ В ГОРОДЕ</span>
+        <span class="separator">•</span>
+        <span>⚡ ЗАКАЖИ ПРЯМО СЕЙЧАС</span>
+        <span class="separator">•</span>
+        <span>🎁 ПОДАРОК К ПЕРВОМУ ЗАКАЗУ</span>
+        <span class="separator">•</span>
+        <span>⭐ 1000+ ДОВОЛЬНЫХ КЛИЕНТОВ</span>
+        <span class="separator">•</span>
+        <span>💰 ВЫГОДНЫЕ СЕТЫ</span>
       </div>
-      
-      <!-- Кнопка корзины (откуда всё вылетает) -->
-      <button id="cart-btn" class="cart-btn hidden">
-        <span id="cart-count">0</span>
-      </button>
     </div>
+    
+    <!-- Кнопка корзины поверх бегущей строки -->
+    <button id="cart-btn" class="cart-btn floating-cart hidden">
+      <span id="cart-count">0</span>
+    </button>
   </header>
 
-  <!-- Сетка меню -->
+  <!-- 3. ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
   <main id="menu-grid" class="menu-grid">
     <!-- Товары загрузятся через JS -->
   </main>
 
-  <!-- Модальное окно корзины -->
+  <!-- Корзина -->
   <div id="cart-modal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
         <h2>Ваш заказ</h2>
         <button id="close-cart" class="modal-close">&times;</button>
-      </div>
-      <div id="cart-items" class="cart-items"></div>
+      </div>      <div id="cart-items" class="cart-items"></div>
       <div class="cart-footer">
         <div class="cart-total">Итого: <span id="cart-total">0</span> ₽</div>
         <input type="text" id="address" class="input-field" placeholder="Адрес доставки">
@@ -96,5 +106,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script></body>
+  <script src="app.js"></script>
+</body>
 </html>
