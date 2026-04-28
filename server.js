@@ -19,7 +19,7 @@ bot.start(async (ctx) => {
     if (!WEBAPP_URL) {
       return ctx.reply('⚠️ Приложение настраивается. Попробуйте через минуту.');
     }
-    await ctx.reply('🍔 Добро пожаловать в FoodHub!\nНажмите кнопку ниже:', {
+    await ctx.reply('🍽️ Добро пожаловать в ЕдаТут!\nНажмите кнопку ниже, чтобы открыть меню:', {
       reply_markup: {
         inline_keyboard: [[
           { text: '📱 Открыть Меню', web_app: { url: WEBAPP_URL } }
@@ -31,11 +31,11 @@ bot.start(async (ctx) => {
   }
 });
 
-// Обработка заказа из Mini App
+// Обработка заказа
 bot.on('web_app_data', async (ctx) => {
   try {
     const data = JSON.parse(ctx.webAppData.data);
-    let msg = `🆕 Новый заказ!\n`;
+    let msg = `🆕 Новый заказ в ЕдаТут!\n`;
     msg += `📦 ${data.items.map(i => `${i.name} x${i.qty}`).join(', ')}\n`;
     msg += `💰 ${data.total} ₽\n`;
     msg += `📍 ${data.address}`;
@@ -45,11 +45,11 @@ bot.on('web_app_data', async (ctx) => {
     await ctx.reply('✅ Заказ принят! Ожидайте подтверждения.');
   } catch (e) {
     console.error('❌ Ошибка заказа:', e);
-    await ctx.reply('❌ Ошибка оформления. Попробуйте снова.');
+    await ctx.reply('❌ Ошибка оформления.');
   }
 });
 
-// API меню с фото и описанием
+// API меню с фото
 app.get('/api/menu', (req, res) => {
   res.json([
     {
@@ -83,15 +83,13 @@ app.get('/api/menu', (req, res) => {
   ]);
 });
 
-// Заглушка API для фронта
 app.post('/api/order', (req, res) => {
   res.json({ success: true });
 });
 
-// Запуск
 bot.catch((err) => console.error('🤖 Telegraf error:', err));
 bot.launch();
 app.listen(PORT, () => {
-  console.log(`🚀 Сервер запущен на порту ${PORT}`);
+  console.log(`🚀 Сервер запущен: ${PORT}`);
   console.log(`🌐 Mini App URL: ${WEBAPP_URL}`);
 });
