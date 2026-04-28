@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ЕдаТут</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -21,8 +21,11 @@
     </div>
   </div>
 
-  <!-- ГЛАВНОЕ МЕНЮ (СТРАНИЦА 1) -->
-  <div id="main-app" class="page active">
+  <!-- СТРАНИЦА 1: ГЛАВНАЯ (МЕНЮ) -->
+  <div id="page-home" class="page active">
+    <header class="top-header">
+      <h1>Меню</h1>
+    </header>
     
     <!-- БЕГУЩАЯ СТРОКА -->
     <div class="marquee-container">
@@ -42,13 +45,9 @@
       </div>
     </div>
 
-    <!-- НАВИГАЦИЯ -->
-    <div class="app-nav">
-      <button id="profile-btn" class="nav-btn">👤</button>
-      <span class="nav-title">Меню</span>
-      <button id="cart-btn" class="nav-btn cart-btn hidden">
-        🛒 <span id="cart-count">0</span>      </button>
-    </div>
+    <!-- ПОИСК (Внутри страницы) -->
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="🔍 Найти бургер или пиццу...">    </div>
 
     <!-- КАТЕГОРИИ -->
     <div class="categories-container">
@@ -63,14 +62,52 @@
     <main id="menu-grid" class="menu-grid"></main>
   </div>
 
-  <!-- ПРОФИЛЬ (СТРАНИЦА 2) -->
-  <div id="profile-page" class="page">
-    <header class="page-header">
-      <button id="back-btn" class="back-btn">← Назад</button>
-      <span class="page-title">Профиль</span>
-      <div class="spacer"></div>
+  <!-- СТРАНИЦА 2: КОРЗИНА (Вместо модального окна, теперь это страница) -->
+  <div id="page-cart" class="page">
+    <header class="top-header">
+      <h1>Корзина</h1>
     </header>
-    
+    <div class="page-content cart-page-content">
+      <div id="cart-items-list" class="cart-items-list"></div>
+      <div class="cart-summary">
+        <div class="cart-total-row">
+          <span>Итого:</span>
+          <span id="cart-total-display">0 ₽</span>
+        </div>
+        <input type="text" id="address" class="input-field" placeholder="Адрес доставки">
+        <textarea id="comment" class="input-field" placeholder="Комментарий курьеру"></textarea>
+        <button id="submit-order-btn" class="btn-primary">Оформить заказ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- СТРАНИЦА 3: ЗАКАЗЫ -->
+  <div id="page-orders" class="page">
+    <header class="top-header">
+      <h1>Мои заказы</h1>
+    </header>
+    <div class="page-content">
+      <div class="empty-state">📦 У вас пока нет активных заказов</div>
+      <div class="orders-history">
+        <div class="order-card">
+          <div class="order-header">
+            <span class="order-id">Заказ #124</span>
+            <span class="order-status status-done">Доставлен</span>
+          </div>
+          <div class="order-items">Чизбургер Классик x2</div>
+          <div class="order-footer">
+            <span class="order-date">Вчера</span>            <span class="order-price">700 ₽</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- СТРАНИЦА 4: ПРОФИЛЬ -->
+  <div id="page-profile" class="page">
+    <header class="top-header">
+      <h1>Профиль</h1>
+    </header>
     <div class="page-content">
       <div class="profile-header">
         <div class="avatar-circle">👤</div>
@@ -84,7 +121,7 @@
           <div class="stat-label">Бонусы</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="orders-count">0</div>
+          <div class="stat-value">1</div>
           <div class="stat-label">Заказы</div>
         </div>
       </div>
@@ -96,42 +133,32 @@
         <button class="btn-copy" onclick="copyRefLink()">Копировать</button>
       </div>
 
-      <div class="profile-actions">        <button class="action-btn">📦 Мои заказы</button>
+      <div class="profile-actions">
         <button class="action-btn">💬 Поддержка</button>
-      </div>
-
-      <div class="orders-history">
-        <div class="order-card">
-          <div class="order-header">
-            <span class="order-id">Заказ #1</span>
-            <span class="order-status status-new">Новый</span>
-          </div>
-          <div class="order-items">Чизбургер Классик x1</div>
-          <div class="order-footer">
-            <span class="order-date">Сегодня</span>
-            <span class="order-price">350 ₽</span>
-          </div>
-        </div>
+        <button class="action-btn">⚙️ Настройки</button>
       </div>
     </div>
   </div>
 
-  <!-- КОРЗИНА (Осталась модальным окном, так удобнее) -->
-  <div id="cart-modal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Корзина</h2>
-        <button id="close-cart" class="modal-close">&times;</button>
-      </div>
-      <div id="cart-items" class="cart-items"></div>
-      <div class="cart-footer">
-        <div class="cart-total">Итого: <span id="cart-total">0</span> ₽</div>
-        <input type="text" id="address" class="input-field" placeholder="Адрес доставки">
-        <textarea id="comment" class="input-field" placeholder="Комментарий"></textarea>
-        <button id="submit-order" class="btn-primary">Оформить заказ</button>
-      </div>
-    </div>
-  </div>
+  <!-- НИЖНЯЯ НАВИГАЦИЯ (TABS) -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-target="page-home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Главная</span>
+    </button>    <button class="nav-item" data-target="page-orders">
+      <span class="nav-icon">📦</span>
+      <span class="nav-label">Заказы</span>
+    </button>
+    <button class="nav-item cart-tab" data-target="page-cart">
+      <span class="nav-icon">🛒</span>
+      <span class="nav-label">Корзина</span>
+      <span class="badge" id="nav-cart-badge">0</span>
+    </button>
+    <button class="nav-item" data-target="page-profile">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Профиль</span>
+    </button>
+  </nav>
 
   <script src="app.js"></script>
 </body>
