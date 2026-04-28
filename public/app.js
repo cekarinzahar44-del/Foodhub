@@ -2,13 +2,13 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Применяем тему
-document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
-document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#1a1a1a');
-document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#8e8e93');
-document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#007aff');
+// Применяем тему (фоллбэки на наши новые цвета, если тема Telegram не задана)
+document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#F7F8FA');
+document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#1A1D21');
+document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#8E9AA5');
+document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#FF6B6B');
 document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
-document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#f8f9fa');
+document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#FFFFFF');
 
 let menu = [];
 let cart = [];
