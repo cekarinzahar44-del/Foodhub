@@ -19,7 +19,7 @@ async function initDB() {
       database: process.env.DB_NAME,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
-      ssl: false, // 🔥 Отключено для Bothost
+      ssl: false,
       max: 20
     });
 
@@ -45,9 +45,10 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS orders (
-        id SERIAL PRIMARY KEY,        user_id INTEGER REFERENCES users(id),
+      CREATE TABLE IF NOT EXISTS orders (        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
         total_amount DECIMAL(10,2) NOT NULL,
         bonus_used DECIMAL(10,2) DEFAULT 0,
         bonus_accrued DECIMAL(10,2) DEFAULT 0,
@@ -59,6 +60,15 @@ async function createTables() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // 🔥 Добавляем колонку items, если её нет
+    try {
+      await pool.query(`ALTER TABLE orders ADD COLUMN items TEXT;`);
+      console.log('✅ Колонка items добавлена в orders');
+    } catch (e) {
+      // Колонка уже существует — игнорируем
+    }
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS transactions (
         id SERIAL PRIMARY KEY,
@@ -69,6 +79,7 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
     console.log('✅ Таблицы готовы');
   } catch (err) {
     console.error('❌ Ошибка создания таблиц:', err);
@@ -85,7 +96,6 @@ const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
 // === МЕНЮ ===
 app.get('/api/menu', (req, res) => {
   res.json([
@@ -135,8 +145,7 @@ app.post('/api/order', async (req, res) => {
     if (bonusUsed === 0) {
       fetch(`http://localhost:${PORT}/api/user/${userId}/accrue`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderAmount: total })
+        headers: { 'Content-Type': 'application/json' },        body: JSON.stringify({ orderAmount: total })
       }).catch(() => {});
     }
     res.json({ success: true, orderId });
@@ -146,7 +155,8 @@ app.post('/api/order', async (req, res) => {
 
 // === АДМИНКА ===
 app.get('/api/admin/orders', async (req, res) => {
-  try {    const result = await pool.query(`
+  try {
+    const result = await pool.query(`
       SELECT o.id, o.total_amount, o.bonus_used, o.status, o.address, o.comment, o.items, o.created_at, u.telegram_id
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.id
@@ -185,8 +195,7 @@ app.post('/api/admin/notify', async (req, res) => {
 });
 
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-
-// === БОТ (ИСПРАВЛЕНО: добавлено async ко всем функциям) ===
+// === БОТ ===
 bot.start(async (ctx) => {
   try {
     await pool.query('INSERT INTO users (telegram_id, name, username, bonus_balance) VALUES ($1, $2, $3, 0) ON CONFLICT (telegram_id) DO NOTHING', [ctx.from.id, ctx.from.first_name, ctx.from.username]);
@@ -195,6 +204,7 @@ bot.start(async (ctx) => {
     await ctx.reply('🍽️ Добро пожаловать в ЕдаТут!', { reply_markup: kb });
   } catch (err) { console.error(err); }
 });
+
 bot.command('admin', async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return ctx.reply('❌ Доступ запрещён');
   await ctx.reply('🔧 Админка:', { reply_markup: { inline_keyboard: [[{ text: 'Открыть', web_app: { url: `${WEBAPP_URL}/admin` } }]] } });
