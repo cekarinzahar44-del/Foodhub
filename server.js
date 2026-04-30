@@ -7,7 +7,6 @@ const { Pool } = require('pg');
 let pool = null;
 let USE_DB = false;
 
-// Инициализация БД
 async function initDB() {
   if (!process.env.DB_HOST || !process.env.DB_USER) {
     console.log('⚠️ Режим: без БД (нет реквизитов)');
@@ -20,7 +19,8 @@ async function initDB() {
       database: process.env.DB_NAME,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
-      ssl: { rejectUnauthorized: false },
+      // 🔥 ИСПРАВЛЕНИЕ: отключаем SSL для Bothost
+      ssl: false,
       max: 20
     });
 
@@ -46,8 +46,9 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS orders (        id SERIAL PRIMARY KEY,
+
+    await pool.query(`      CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
         total_amount DECIMAL(10,2) NOT NULL,
         bonus_used DECIMAL(10,2) DEFAULT 0,
@@ -55,11 +56,12 @@ async function createTables() {
         status VARCHAR(50) DEFAULT 'pending',
         address TEXT,
         comment TEXT,
-        items TEXT, -- Храним корзину как JSON
+        items TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS transactions (
         id SERIAL PRIMARY KEY,
@@ -70,6 +72,7 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
     console.log('✅ Таблицы готовы');
   } catch (err) {
     console.error('❌ Ошибка создания таблиц:', err);
@@ -87,17 +90,16 @@ const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// === 🔥 ИСПРАВЛЕНИЕ 1: Вернули меню ===
+// === МЕНЮ ===
 app.get('/api/menu', (req, res) => {
   res.json([
-    { id: 1, name: 'Чизбургер Классик', desc: 'Сочная говядина, сыр чеддер, свежие овощи', price: 350, category: 'burger', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop' },
-    { id: 2, name: 'Пицца Маргарита', desc: 'Томатный соус, моцарелла, свежий базилик', price: 600, category: 'pizza', image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop' },
-    { id: 3, name: 'Кола 0.5л', desc: 'Классический освежающий вкус', price: 150, category: 'drink', image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&h=300&fit=crop' },
-    { id: 4, name: 'Картофель фри', desc: 'Золотистый, хрустящий, с морской солью', price: 200, category: 'fry', image: 'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=400&h=300&fit=crop' },
-    { id: 5, name: 'Двойной Бургер', desc: 'Для самых голодных', price: 450, category: 'burger', image: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=400&h=300&fit=crop' }
-  ]);
+    { id: 1, name: 'Чизбургер Классик', desc: 'Сочная говядина, сыр чеддер', price: 350, category: 'burger', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop' },
+    { id: 2, name: 'Пицца Маргарита', desc: 'Томаты, моцарелла, базилик', price: 600, category: 'pizza', image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop' },
+    { id: 3, name: 'Кола 0.5л', desc: 'Освежающий напиток', price: 150, category: 'drink', image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&h=300&fit=crop' },
+    { id: 4, name: 'Картофель фри', desc: 'Хрустящий, с солью', price: 200, category: 'fry', image: 'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=400&h=300&fit=crop' }  ]);
 });
-// === ПОЛЬЗОВАТЕЛЬСКИЕ API ===
+
+// === ПОЛЬЗОВАТЕЛЬ ===
 app.get('/api/user/:userId/balance', async (req, res) => {
   try {
     const result = await pool.query('SELECT bonus_balance FROM users WHERE telegram_id = $1', [req.params.userId]);
@@ -119,6 +121,7 @@ app.post('/api/user/:userId/accrue', async (req, res) => {
   finally { client.release(); }
 });
 
+// === ЗАКАЗ ===
 app.post('/api/order', async (req, res) => {
   const { items, total, address, comment, bonusUsed = 0, userId } = req.body;
   const client = await pool.connect();
@@ -133,19 +136,23 @@ app.post('/api/order', async (req, res) => {
     await client.query('COMMIT');
     const orderId = result.rows[0].id;
     if (bonusUsed === 0) {
-      fetch(`http://localhost:${PORT}/api/user/${userId}/accrue`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderAmount: total }) }).catch(() => {});
+      fetch(`http://localhost:${PORT}/api/user/${userId}/accrue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderAmount: total })
+      }).catch(() => {});
     }
     res.json({ success: true, orderId });
   } catch { await client.query('ROLLBACK'); res.status(500).json({ error: 'Ошибка' }); }
   finally { client.release(); }
 });
-
-// === 🔥 ИСПРАВЛЕНИЕ 2: Админка (убрали сломанные JOINы) ===
+// === АДМИНКА (без order_items!) ===
 app.get('/api/admin/orders', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT o.id, o.total_amount, o.bonus_used, o.status, o.address, o.comment, o.items, o.created_at, u.telegram_id
-      FROM orders o      LEFT JOIN users u ON o.user_id = u.id
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.id
       ORDER BY o.created_at DESC
       LIMIT 50
     `);
@@ -173,7 +180,12 @@ app.post('/api/admin/order/:id/status', async (req, res) => {
 
 app.post('/api/admin/notify', async (req, res) => {
   const { userId, status, orderId } = req.body;
-  const messages = { 'cooking': '👨‍🍳 Ваш заказ готовится!', 'delivering': '🚀 Заказ передан курьеру!', 'delivered': '✅ Доставлен!', 'cancelled': '❌ Отменён' };
+  const messages = {
+    'cooking': '👨‍🍳 Ваш заказ готовится!',
+    'delivering': '🚀 Заказ передан курьеру!',
+    'delivered': '✅ Доставлен!',
+    'cancelled': '❌ Отменён'
+  };
   try {
     await bot.telegram.sendMessage(userId, `${messages[status]}\n\nЗаказ #${orderId}`);
     res.json({ success: true });
@@ -182,8 +194,7 @@ app.post('/api/admin/notify', async (req, res) => {
 
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-// === БОТ ===
-bot.start(async (ctx) => {
+// === БОТ ===bot.start(async (ctx) => {
   try {
     await pool.query('INSERT INTO users (telegram_id, name, username, bonus_balance) VALUES ($1, $2, $3, 0) ON CONFLICT (telegram_id) DO NOTHING', [ctx.from.id, ctx.from.first_name, ctx.from.username]);
     const kb = { inline_keyboard: [[{ text: '📱 Открыть Меню', web_app: { url: WEBAPP_URL } }]] };
@@ -194,7 +205,8 @@ bot.start(async (ctx) => {
 
 bot.command('admin', async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return ctx.reply('❌ Доступ запрещён');
-  await ctx.reply('🔧 Админка:', { reply_markup: { inline_keyboard: [[{ text: 'Открыть', web_app: { url: `${WEBAPP_URL}/admin` } }]] } });});
+  await ctx.reply('🔧 Админка:', { reply_markup: { inline_keyboard: [[{ text: 'Открыть', web_app: { url: `${WEBAPP_URL}/admin` } }]] } });
+});
 
 bot.on('web_app_data', async (ctx) => {
   try {
@@ -207,7 +219,9 @@ bot.on('web_app_data', async (ctx) => {
 
 bot.catch(err => console.error('Bot error:', err));
 
+// === ЗАПУСК ===
 bot.launch();
 app.listen(PORT, () => console.log(`🚀 Server: ${PORT} | DB: ${USE_DB ? 'PostgreSQL' : 'OFF'}`));
+
 process.on('SIGINT', () => { if(pool) pool.end(); bot.stop('SIGINT'); process.exit(); });
 process.on('SIGTERM', () => { if(pool) pool.end(); bot.stop('SIGTERM'); process.exit(); });
