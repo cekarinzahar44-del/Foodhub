@@ -96,7 +96,8 @@ app.get('/api/menu', (req, res) => {
   ]);
 });
 
-// === ПОЛЬЗОВАТЕЛЬ ===app.get('/api/user/:userId/balance', async (req, res) => {
+// === ПОЛЬЗОВАТЕЛЬ ===
+app.get('/api/user/:userId/balance', async (req, res) => {
   try {
     const result = await pool.query('SELECT bonus_balance FROM users WHERE telegram_id = $1', [req.params.userId]);
     res.json({ balance: result.rows[0]?.bonus_balance || 0 });
