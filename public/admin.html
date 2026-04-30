@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Админ-панель - ЕдаТут</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F7F8FA;
+      padding: 16px;
+      padding-bottom: 80px;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+    .header h1 { font-size: 22px; margin-bottom: 4px; }
+    .header p { font-size: 14px; opacity: 0.9; }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .stat-card {
+      background: white;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .stat-value { font-size: 24px; font-weight: bold; color: #667eea; }
+    .stat-label { font-size: 12px; color: #8E9AA5; margin-top: 4px; }
+    
+    .orders-list { background: white; border-radius: 16px; padding: 16px; }
+    .order-card {
+      border: 1px solid #E8EAED;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #FAFBFC;
+    }
+    .order-header {      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .order-id { font-weight: bold; font-size: 15px; }
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .status-pending { background: #FEF3C7; color: #92400E; }
+    .status-cooking { background: #DBEAFE; color: #1E40AF; }
+    .status-delivering { background: #FCE7F3; color: #9D174D; }
+    .status-delivered { background: #D1FAE5; color: #065F46; }
+    .status-cancelled { background: #FEE2E2; color: #991B1B; }
+    
+    .order-info { font-size: 13px; color: #6B7280; margin-bottom: 6px; }
+    .order-items {
+      font-size: 13px;
+      margin-bottom: 10px;
+      padding: 8px;
+      background: white;
+      border-radius: 8px;
+    }
+    .status-select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+    }
+    .refresh-btn {
+      width: 100%;
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+    }
+    .loading { text-align: center; padding: 40px; color: #8E9AA5; }
+    .error { background: #FEE2E2; color: #991B1B; padding: 20px; border-radius: 12px; text-align: center; }
+  </style>
+</head><body>
+  <div class="header">
+    <h1>🔧 Админ-панель</h1>
+    <p>Управление заказами ЕдаТут</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-new">0</div>
+      <div class="stat-label">🆕 Новых</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-cooking">0</div>
+      <div class="stat-label">👨‍ Готовится</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-delivering">0</div>
+      <div class="stat-label">🚀 В пути</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-label">💰 Выручка</div>
+    </div>
+  </div>
+
+  <div class="orders-list">
+    <button class="refresh-btn" onclick="loadOrders()">🔄 Обновить</button>
+    <div id="orders-container">
+      <div class="loading">Загрузка...</div>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+    
+    const ADMIN_ID = 8043971654; // Замени на свой ADMIN_ID из .env
+    const userId = tg.initDataUnsafe.user?.id;
+    
+    // Проверка доступа
+    if (userId !== ADMIN_ID) {
+      document.body.innerHTML = `
+        <div class="error">
+          <h2>❌ Доступ запрещён</h2>
+          <p>Только для администратора</p>
+        </div>
+      `;
+      throw new Error('Access denied');
+    }
+    const statusLabels = {
+      'pending': '🆕 Новый',
+      'cooking': '👨‍🍳 Готовится',
+      'delivering': '🚀 Доставляется',
+      'delivered': '✅ Доставлен',
+      'cancelled': '❌ Отменён'
+    };
+
+    async function loadOrders() {
+      try {
+        const res = await fetch('/api/admin/orders');
+        const orders = await res.json();
+        
+        updateStats(orders);
+        renderOrders(orders);
+      } catch (err) {
+        document.getElementById('orders-container').innerHTML = 
+          '<div class="error">Ошибка загрузки</div>';
+      }
+    }
+
+    function updateStats(orders) {
+      const stats = {
+        pending: orders.filter(o => o.status === 'pending').length,
+        cooking: orders.filter(o => o.status === 'cooking').length,
+        delivering: orders.filter(o => o.status === 'delivering').length,
+        total: orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0)
+      };
+      
+      document.getElementById('stat-new').textContent = stats.pending;
+      document.getElementById('stat-cooking').textContent = stats.cooking;
+      document.getElementById('stat-delivering').textContent = stats.delivering;
+      document.getElementById('stat-total').textContent = stats.total.toLocaleString() + ' ₽';
+    }
+
+    function renderOrders(orders) {
+      const container = document.getElementById('orders-container');
+      
+      if (orders.length === 0) {
+        container.innerHTML = '<div class="loading">Заказов пока нет</div>';
+        return;
+      }
+      
+      container.innerHTML = orders.map(order => `
+        <div class="order-card">
+          <div class="order-header">
+            <span class="order-id">Заказ #${order.id}</span>
+            <span class="status-badge status-${order.status}">
+              ${statusLabels[order.status]}            </span>
+          </div>
+          <div class="order-info">
+            👤 ID: ${order.user_id} | 💰 ${order.total_amount} ₽
+          </div>
+          <div class="order-info">📍 ${order.address || 'Нет адреса'}</div>
+          <div class="order-items">
+            <strong>📦 Товары:</strong><br>
+            ${order.items || 'Нет данных'}
+          </div>
+          ${order.comment ? `<div class="order-info">💬 ${order.comment}</div>` : ''}
+          <div class="order-info">⏰ ${new Date(order.created_at).toLocaleString('ru-RU')}</div>
+          <select class="status-select" onchange="updateStatus(${order.id}, this.value)">
+            ${Object.entries(statusLabels).map(([key, label]) => 
+              `<option value="${key}" ${order.status === key ? 'selected' : ''}>${label}</option>`
+            ).join('')}
+          </select>
+        </div>
+      `).join('');
+    }
+
+    async function updateStatus(orderId, newStatus) {
+      tg.HapticFeedback.impactOccurred('light');
+      
+      try {
+        const res = await fetch('/api/admin/order/' + orderId + '/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (res.ok) {
+          await loadOrders();
+          
+          // Отправка уведомления пользователю
+          const order = await fetch('/api/admin/order/' + orderId).then(r => r.json());
+          if (order.telegram_id) {
+            await fetch('/api/admin/notify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: order.telegram_id,
+                status: newStatus,
+                orderId: orderId
+              })
+            });
+          }
+          
+          tg.showAlert(`Статус заказа #${orderId} изменён!`);
+        } else {          tg.showAlert('Ошибка обновления статуса');
+        }
+      } catch (err) {
+        tg.showAlert('Ошибка: ' + err.message);
+      }
+    }
+
+    // Автообновление каждые 30 секунд
+    loadOrders();
+    setInterval(loadOrders, 30000);
+  </script>
+</body>
+</html>
