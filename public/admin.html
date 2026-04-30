@@ -3,293 +3,192 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Админ-панель Foodhub</title>
+  <title>Foodhub Admin Pro</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root {
-      --bg-color: #F2F4F7;
-      --card-bg: #FFFFFF;
-      --primary: #3b82f6;
-      --text-main: #111827;
-      --text-secondary: #6B7280;
-      --nav-bg: #FFFFFF;
-      --nav-active: #3b82f6;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      padding-bottom: 80px; /* Отступ для нижней панели */
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg-color);
-      color: var(--text-main);
-    }
-
-    /* Header */
-    .header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-      color: white;
-      padding: 20px 16px;
-      border-radius: 0 0 20px 20px;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-    }
-    .header h1 { margin: 0; font-size: 22px; }
-    .header p { margin: 4px 0 0; opacity: 0.9; font-size: 14px; }
-
-    /* Views */
-    .view-section { display: none; padding: 16px; animation: fadeIn 0.3s; }
-    .view-section.active { display: block; }
-    
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    /* Dashboard Cards */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;    }
-    .stat-card {
-      background: var(--card-bg);
-      padding: 16px;
-      border-radius: 16px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .stat-value { font-size: 24px; font-weight: 800; color: var(--primary); }
-    .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
-
-    /* Orders List */
-    .order-card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; }
-    .status-pending { background: #FEF3C7; color: #D97706; }
-    .status-cooking { background: #DBEAFE; color: #2563EB; }
-    .status-delivering { background: #FCE7F3; color: #DB2777; }
-    .status-delivered { background: #D1FAE5; color: #059669; }
-    .status-cancelled { background: #FEE2E2; color: #DC2626; }
-
-    .order-info { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
-    .order-items-box { background: #F9FAFB; padding: 10px; border-radius: 10px; font-size: 13px; margin-bottom: 10px; line-height: 1.5; }
-    
-    select.status-select {
-      width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #E5E7EB;
-      font-size: 14px; font-weight: 600; background: #fff;
-    }
-
-    /* Menu List */
-    .menu-item {
-      display: flex; align-items: center; background: var(--card-bg);
-      padding: 12px; border-radius: 12px; margin-bottom: 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .menu-img { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; margin-right: 12px; background: #eee; }
-    .menu-details { flex: 1; }
-    .menu-name { font-weight: 600; font-size: 15px; }
-    .menu-price { color: var(--primary); font-weight: 700; }
-
-    /* Bottom Navigation */
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 0; width: 100%;
-      background: var(--nav-bg);      display: flex; justify-content: space-around; align-items: center;
-      padding: 10px 0 20px; /* Extra padding for iPhone home bar */
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-      z-index: 100;
-    }
-    .nav-btn {
-      background: none; border: none; flex: 1;
-      display: flex; flex-direction: column; align-items: center;
-      color: var(--text-secondary); font-size: 11px; font-weight: 600;
-      cursor: pointer; transition: 0.2s;
-    }
-    .nav-btn span { font-size: 20px; margin-bottom: 4px; }
-    .nav-btn.active { color: var(--nav-active); }
-
-    /* Empty State */
-    .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
+    :root { --bg: #F2F4F7; --card: #FFFFFF; --primary: #3b82f6; --text: #111827; --sec: #6B7280; --nav: #FFFFFF; }
+    body { margin:0; padding:0; padding-bottom:80px; font-family: system-ui, sans-serif; background:var(--bg); color:var(--text); }
+    .header { background:linear-gradient(135deg, #1e3a8a, #3b82f6); color:white; padding:20px 16px; border-radius:0 0 20px 20px; box-shadow:0 4px 12px rgba(59,130,246,0.2); }
+    .header h1 { margin:0; font-size:22px; } .header p { margin:4px 0 0; opacity:0.9; font-size:14px; }
+    .view { display:none; padding:16px; animation:fadeIn 0.3s; } .view.active { display:block; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+    .card { background:var(--card); padding:16px; border-radius:16px; box-shadow:0 2px 8px rgba(0,0,0,0.05); text-align:center; }
+    .val { font-size:24px; font-weight:800; color:var(--primary); } .lbl { font-size:12px; color:var(--sec); margin-top:4px; }
+    .item-card { background:var(--card); padding:14px; border-radius:14px; margin-bottom:10px; box-shadow:0 1px 4px rgba(0,0,0,0.05); }
+    .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .badge { padding:4px 10px; border-radius:10px; font-size:11px; font-weight:700; }
+    .st-p { background:#FEF3C7; color:#D97706; } .st-c { background:#DBEAFE; color:#2563EB; } .st-d { background:#FCE7F3; color:#DB2777; } .st-ok { background:#D1FAE5; color:#059669; } .st-x { background:#FEE2E2; color:#DC2626; }
+    .info { font-size:13px; color:var(--sec); margin-bottom:6px; }
+    .box { background:#F9FAFB; padding:10px; border-radius:10px; font-size:13px; margin-bottom:10px; }
+    select { width:100%; padding:10px; border-radius:10px; border:1px solid #E5E7EB; font-size:14px; font-weight:600; background:#fff; }
+    .menu-item { display:flex; align-items:center; background:var(--card); padding:12px; border-radius:12px; margin-bottom:10px; }
+    .menu-img { width:50px; height:50px; border-radius:10px; object-fit:cover; margin-right:12px; background:#eee; }
+    .details { flex:1; } .name { font-weight:600; font-size:15px; } .price { color:var(--primary); font-weight:700; }
+    .btn { background:var(--primary); color:white; border:none; padding:10px 16px; border-radius:10px; font-weight:600; cursor:pointer; width:100%; margin-bottom:10px; }
+    .btn-red { background:#EF4444; } .btn-sm { width:auto; padding:6px 12px; font-size:12px; margin:0 4px; }
+    .nav { position:fixed; bottom:0; left:0; width:100%; background:var(--nav); display:flex; justify-content:space-around; padding:10px 0 20px; box-shadow:0 -2px 10px rgba(0,0,0,0.05); z-index:100; }
+    .nav-btn { background:none; border:none; flex:1; display:flex; flex-direction:column; align-items:center; color:var(--sec); font-size:11px; font-weight:600; cursor:pointer; }
+    .nav-btn span { font-size:20px; margin-bottom:4px; } .nav-btn.active { color:var(--primary); }
+    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; }
+    .modal.open { display:flex; }
+    .modal-content { background:white; padding:20px; border-radius:16px; width:90%; max-width:400px; }
+    input, textarea { width:100%; padding:10px; margin:6px 0; border:1px solid #ddd; border-radius:8px; font-size:14px; box-sizing:border-box; }
+    .empty { text-align:center; padding:40px; color:var(--sec); }
   </style>
 </head>
 <body>
+  <div class="header"><h1>🔧 Foodhub Admin</h1><p>Управление рестораном</p></div>
 
-  <div class="header">
-    <h1>🔧 Foodhub Admin</h1>
-    <p>Управление рестораном</p>
-  </div>
-
-  <!-- VIEW 1: DASHBOARD -->
-  <div id="dashboard-view" class="view-section active">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-value" id="stat-revenue">0₽</div>
-        <div class="stat-label"> Выручка</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="stat-orders">0</div>
-        <div class="stat-label">📦 Заказов</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="stat-new">0</div>
-        <div class="stat-label">🆕 Новых</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="stat-active">0</div>
-        <div class="stat-label">🔥 В работе</div>
-      </div>
+  <div id="dash-view" class="view active">
+    <div class="grid">
+      <div class="card"><div class="val" id="m-rev">0₽</div><div class="lbl"> Выручка</div></div>
+      <div class="card"><div class="val" id="m-ord">0</div><div class="lbl"> Заказов</div></div>
+      <div class="card"><div class="val" id="m-avg">0₽</div><div class="lbl">💳 Средний чек</div></div>
+      <div class="card"><div class="val" id="m-top">-</div><div class="lbl">🔥 Топ-товар</div></div>
     </div>
-    <div style="text-align:center; color:#888; margin-top:20px;">
-       Загрузка статистики...
-    </div>
-  </div>
-  <!-- VIEW 2: ORDERS -->
-  <div id="orders-view" class="view-section">
-    <div id="orders-list"></div>
+    <div class="empty" id="dash-loading">Загрузка метрик...</div>  </div>
+
+  <div id="orders-view" class="view"><div id="orders-list" class="empty">⏳ Загрузка...</div></div>
+
+  <div id="menu-view" class="view">
+    <button class="btn" onclick="openModal('add')">➕ Добавить позицию</button>
+    <div id="menu-list" class="empty">⏳ Загрузка...</div>
   </div>
 
-  <!-- VIEW 3: MENU -->
-  <div id="menu-view" class="view-section">
-    <div id="menu-list"></div>
-  </div>
-
-  <!-- BOTTOM NAVIGATION -->
-  <nav class="bottom-nav">
-    <button class="nav-btn active" onclick="switchTab('dashboard', this)">
-      <span></span> Главная
-    </button>
-    <button class="nav-btn" onclick="switchTab('orders', this)">
-      <span>📦</span> Заказы
-    </button>
-    <button class="nav-btn" onclick="switchTab('menu', this)">
-      <span>🍔</span> Меню
-    </button>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchTab('dash', this)"><span></span> Дашборд</button>
+    <button class="nav-btn" onclick="switchTab('orders', this)"><span></span> Заказы</button>
+    <button class="nav-btn" onclick="switchTab('menu', this)"><span>🍔</span> Меню</button>
   </nav>
 
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-title">Редактировать</h3>
+      <input type="hidden" id="edit-id">
+      <input type="text" id="f-name" placeholder="Название">
+      <input type="text" id="f-cat" placeholder="Категория (burger, pizza...)">
+      <input type="number" id="f-price" placeholder="Цена">
+      <input type="text" id="f-img" placeholder="Ссылка на картинку">
+      <textarea id="f-desc" placeholder="Описание"></textarea>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <button class="btn" onclick="saveItem()">💾 Сохранить</button>
+        <button class="btn btn-red" onclick="closeModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+    const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
+    const MY_ID = 8043971654; 
+    if (tg.initDataUnsafe?.user?.id !== MY_ID) document.body.innerHTML = '<div style="text-align:center;padding:50px;"> Доступ запрещён</div>';
 
-    const MY_ID = 8043971654; // Твой ADMIN_ID
-    const userId = tg.initDataUnsafe?.user?.id;
-
-    if (userId !== MY_ID) {
-      document.body.innerHTML = '<div style="text-align:center;padding:50px;">🚫 Доступ запрещён</div>';
-      throw new Error('Access Denied');
-    }
-
-    const statusLabels = {
-      'pending': '🆕 Новый', 'cooking': '👨‍🍳 Готовится', 
-      'delivering': ' В пути', 'delivered': '✅ Доставлен', 'cancelled': '❌ Отменён'
-    };
-
+    const statusLabels = { 'pending': '🆕 Новый', 'cooking': '👨‍ Готовится', 'delivering': ' В пути', 'delivered': '✅ Доставлен', 'cancelled': '❌ Отменён' };
     let allOrders = [];
 
-    // === NAVIGATION ===
-    function switchTab(tabId, btnElement) {
-      // Hide all views
-      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-      // Show selected
-      document.getElementById(tabId + '-view').classList.add('active');
-            // Update buttons
-      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-      btnElement.classList.add('active');
-
-      // Load data based on tab
-      if (tabId === 'orders') loadOrders();
-      if (tabId === 'menu') loadMenu();
-      if (tabId === 'dashboard') updateDashboard();
+    function switchTab(id, btn) {
+      document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
+      document.getElementById(id + '-view').classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
+      btn.classList.add('active');
+      if (id === 'orders') loadOrders();
+      if (id === 'menu') loadMenuAdmin();
+      if (id === 'dash') loadMetrics();
     }
 
-    // === DATA LOADING ===
+    async function loadMetrics() {      document.getElementById('dash-loading').style.display = 'block';
+      try {
+        const res = await fetch('/api/admin/metrics');
+        const m = await res.json();
+        document.getElementById('m-rev').textContent = m.revenue.toLocaleString() + ' ₽';
+        document.getElementById('m-ord').textContent = m.totalOrders;
+        document.getElementById('m-avg').textContent = Math.round(m.avgCheck).toLocaleString() + ' ₽';
+        document.getElementById('m-top').textContent = m.topItem;
+        document.getElementById('dash-loading').style.display = 'none';
+      } catch { document.getElementById('dash-loading').textContent = '❌ Ошибка метрик'; }
+    }
+
     async function loadOrders() {
-      const listEl = document.getElementById('orders-list');
-      listEl.innerHTML = '<div class="empty-state">⏳ Загрузка...</div>';
+      const el = document.getElementById('orders-list');
+      el.innerHTML = '<div class="empty">⏳ Загрузка...</div>';
       try {
         const res = await fetch('/api/admin/orders');
         allOrders = await res.json();
-        renderOrders(allOrders);
-        updateDashboard(); // Обновляем и дашборд
-      } catch { listEl.innerHTML = '<div class="empty-state"> Ошибка загрузки</div>'; }
+        el.innerHTML = allOrders.map(o => {
+          let items = 'Нет данных';
+          try { const j = typeof o.items === 'string' ? JSON.parse(o.items) : o.items; if(Array.isArray(j)) items = j.map(i=>`• <b>${i.name}</b> x${i.qty}`).join('<br>'); } catch{}
+          return `<div class="item-card">
+            <div class="top"><span class="order-id">#${o.id}</span><span class="badge st-${o.status==='pending'?'p':o.status==='cooking'?'c':o.status==='delivering'?'d':o.status==='delivered'?'ok':'x'}">${statusLabels[o.status]||o.status}</span></div>
+            <div class="info">📍 ${o.address||'Нет адреса'}</div>
+            <div class="box">${items}</div>
+            <div class="top"><span style="font-weight:700">${parseFloat(o.total_amount).toLocaleString()} ₽</span><span style="font-size:11px;color:#888">${new Date(o.created_at).toLocaleTimeString()}</span></div>
+            <select onchange="changeStatus(${o.id}, this.value)">
+              ${Object.keys(statusLabels).map(k=>`<option value="${k}" ${o.status===k?'selected':''}>${statusLabels[k]}</option>`).join('')}
+            </select></div>`;
+        }).join('') || '<div class="empty">📭 Заказов нет</div>';
+      } catch { el.innerHTML = '<div class="empty">❌ Ошибка</div>'; }
     }
 
-    function renderOrders(orders) {
-      const listEl = document.getElementById('orders-list');
-      if (orders.length === 0) {
-        listEl.innerHTML = '<div class="empty-state">📭 Заказов нет</div>';
-        return;
-      }
-      listEl.innerHTML = orders.map(order => {
-        let itemsHtml = 'Нет данных';
-        try {
-          const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-          if (Array.isArray(items)) itemsHtml = items.map(i => `• <b>${i.name}</b> x${i.qty}`).join('<br>');
-        } catch { itemsHtml = order.items; }
-
-        return `
-          <div class="order-card">
-            <div class="order-top">
-              <span class="order-id">#${order.id}</span>
-              <span class="badge status-${order.status}">${statusLabels[order.status] || order.status}</span>
-            </div>
-            <div class="order-info">📍 ${order.address || 'Нет адреса'}</div>
-            <div class="order-items-box">${itemsHtml}</div>
-            <div class="order-top">
-              <span style="font-weight:700">${parseFloat(order.total_amount).toLocaleString()} ₽</span>
-              <span style="font-size:11px;color:#888">${new Date(order.created_at).toLocaleTimeString()}</span>
-            </div>
-            <select class="status-select" onchange="changeStatus(${order.id}, this.value)">
-              ${Object.keys(statusLabels).map(key => `<option value="${key}" ${order.status===key?'selected':''}>${statusLabels[key]}</option>`).join('')}
-            </select>          </div>`;
-      }).join('');
+    async function changeStatus(id, st) {
+      try { await fetch(`/api/admin/order/${id}/status`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:st})}); tg.HapticFeedback.notificationOccurred('success'); loadOrders(); } 
+      catch { tg.HapticFeedback.notificationOccurred('error'); }
     }
 
-    async function loadMenu() {
-      const listEl = document.getElementById('menu-list');
-      listEl.innerHTML = '<div class="empty-state">⏳ Загрузка меню...</div>';
+    async function loadMenuAdmin() {
+      const el = document.getElementById('menu-list');
+      el.innerHTML = '<div class="empty">⏳ Загрузка...</div>';
       try {
-        const res = await fetch('/api/menu');
+        const res = await fetch('/api/admin/menu');
         const items = await res.json();
-        listEl.innerHTML = items.map(item => `
+        el.innerHTML = items.map(i => `
           <div class="menu-item">
-            <img src="${item.image}" class="menu-img" onerror="this.src='https://via.placeholder.com/50'">
-            <div class="menu-details">
-              <div class="menu-name">${item.name}</div>
-              <div style="font-size:12px;color:#666">${item.category}</div>
-            </div>
-            <div class="menu-price">${item.price} ₽</div>
-          </div>
-        `).join('');
-      } catch { listEl.innerHTML = '<div class="empty-state">❌ Ошибка</div>'; }
+            <img src="${i.image_url||'https://via.placeholder.com/50'}" class="menu-img" onerror="this.src='https://via.placeholder.com/50'">
+            <div class="details"><div class="name">${i.name}</div><div style="font-size:12px;color:#666">${i.category}</div></div>
+            <div class="price">${i.price} ₽</div>
+            <div><button class="btn btn-sm" onclick="openModal('edit', ${i.id}, '${i.name}', '${i.category}', ${i.price}, '${i.image_url||''}', '${i.description||''}')">✏️</button>            <button class="btn btn-sm btn-red" onclick="deleteItem(${i.id})">🗑</button></div>
+          </div>`).join('') || '<div class="empty">📭 Меню пусто</div>';
+      } catch { el.innerHTML = '<div class="empty">❌ Ошибка</div>'; }
     }
 
-    function updateDashboard() {
-      if (!allOrders.length) return;
-      const revenue = allOrders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + parseFloat(o.total_amount), 0);
-      const newCount = allOrders.filter(o => o.status === 'pending').length;
-      const activeCount = allOrders.filter(o => ['cooking', 'delivering'].includes(o.status)).length;
-
-      document.getElementById('stat-revenue').textContent = revenue.toLocaleString() + ' ₽';
-      document.getElementById('stat-orders').textContent = allOrders.length;
-      document.getElementById('stat-new').textContent = newCount;
-      document.getElementById('stat-active').textContent = activeCount;
+    function openModal(mode, id, name, cat, price, img, desc) {
+      document.getElementById('modal').classList.add('open');
+      document.getElementById('modal-title').textContent = mode === 'add' ? '➕ Добавить позицию' : '✏️ Редактировать';
+      document.getElementById('edit-id').value = id || '';
+      document.getElementById('f-name').value = name || '';
+      document.getElementById('f-cat').value = cat || '';
+      document.getElementById('f-price').value = price || '';
+      document.getElementById('f-img').value = img || '';
+      document.getElementById('f-desc').value = desc || '';
     }
+    function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
-    async function changeStatus(id, newStatus) {
+    async function saveItem() {
+      const id = document.getElementById('edit-id').value;
+      const data = {
+        name: document.getElementById('f-name').value,
+        category: document.getElementById('f-cat').value,
+        price: parseFloat(document.getElementById('f-price').value),
+        image_url: document.getElementById('f-img').value,
+        description: document.getElementById('f-desc').value
+      };
+      if (!data.name || isNaN(data.price)) return tg.showAlert('Заполните название и цену!');
+      
       try {
-        await fetch(`/api/admin/order/${id}/status`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus })
-        });
+        const url = id ? `/api/admin/menu/${id}` : '/api/admin/menu';
+        const method = id ? 'PUT' : 'POST';
+        await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
         tg.HapticFeedback.notificationOccurred('success');
-        loadOrders();
-      } catch { tg.HapticFeedback.notificationOccurred('error'); }
+        closeModal(); loadMenuAdmin();
+      } catch { tg.showAlert('Ошибка сохранения'); }
     }
 
-    // Start
-    loadOrders();
+    async function deleteItem(id) {
+      if (!confirm('Удалить позицию?')) return;
+      try { await fetch(`/api/admin/menu/${id}`, {method:'DELETE'}); tg.HapticFeedback.notificationOccurred('warning'); loadMenuAdmin(); } 
+      catch { tg.showAlert('Ошибка удаления'); }
+    }
+
+    loadMetrics();
   </script>
-</body></html>
+</body>
+</html>
