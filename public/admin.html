@@ -2,289 +2,294 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Админ-панель ЕдаТут</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Админ-панель Foodhub</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-color: #F7F8FA;
+      --bg-color: #F2F4F7;
       --card-bg: #FFFFFF;
-      --primary: #667eea;
-      --text-main: #1A1D21;
-      --text-secondary: #8E9AA5;
-      --border: #E8EAED;
+      --primary: #3b82f6;
+      --text-main: #111827;
+      --text-secondary: #6B7280;
+      --nav-bg: #FFFFFF;
+      --nav-active: #3b82f6;
     }
-    
+
     body {
       margin: 0;
       padding: 0;
+      padding-bottom: 80px; /* Отступ для нижней панели */
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg-color);
       color: var(--text-main);
-      padding-bottom: 20px;
     }
 
     /* Header */
     .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
       color: white;
       padding: 20px 16px;
       border-radius: 0 0 20px 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 12px rgba(118, 75, 162, 0.2);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
     }
     .header h1 { margin: 0; font-size: 22px; }
     .header p { margin: 4px 0 0; opacity: 0.9; font-size: 14px; }
 
-    /* Stats */
+    /* Views */
+    .view-section { display: none; padding: 16px; animation: fadeIn 0.3s; }
+    .view-section.active { display: block; }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Dashboard Cards */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
-      padding: 0 16px;
-      margin-bottom: 16px;
-    }
+      margin-bottom: 20px;    }
     .stat-card {
       background: var(--card-bg);
       padding: 16px;
-      border-radius: 14px;      text-align: center;
+      border-radius: 16px;
+      text-align: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     .stat-value { font-size: 24px; font-weight: 800; color: var(--primary); }
     .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
 
     /* Orders List */
-    .orders-container {
-      padding: 0 16px;
-    }
-    .refresh-btn {
-      width: 100%;
-      padding: 14px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--primary);
-      cursor: pointer;
-      margin-bottom: 12px;
-      transition: 0.2s;
-    }
-    .refresh-btn:active { transform: scale(0.98); }
-
     .order-card {
       background: var(--card-bg);
       border-radius: 16px;
       padding: 16px;
       margin-bottom: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      border: 1px solid var(--border);
     }
-    
-    .order-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .order-id { font-weight: 700; font-size: 16px; }
-    
-    .badge {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-    }
+    .order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; }
     .status-pending { background: #FEF3C7; color: #D97706; }
-    .status-cooking { background: #DBEAFE; color: #2563EB; }    .status-delivering { background: #FCE7F3; color: #DB2777; }
+    .status-cooking { background: #DBEAFE; color: #2563EB; }
+    .status-delivering { background: #FCE7F3; color: #DB2777; }
     .status-delivered { background: #D1FAE5; color: #059669; }
     .status-cancelled { background: #FEE2E2; color: #DC2626; }
 
     .order-info { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
-    .order-items-box {
-      background: #F9FAFB;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 13px;
-      margin-bottom: 10px;
-      line-height: 1.5;
-    }
+    .order-items-box { background: #F9FAFB; padding: 10px; border-radius: 10px; font-size: 13px; margin-bottom: 10px; line-height: 1.5; }
     
     select.status-select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #fff;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-main);
+      width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #E5E7EB;
+      font-size: 14px; font-weight: 600; background: #fff;
     }
 
+    /* Menu List */
+    .menu-item {
+      display: flex; align-items: center; background: var(--card-bg);
+      padding: 12px; border-radius: 12px; margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .menu-img { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; margin-right: 12px; background: #eee; }
+    .menu-details { flex: 1; }
+    .menu-name { font-weight: 600; font-size: 15px; }
+    .menu-price { color: var(--primary); font-weight: 700; }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background: var(--nav-bg);      display: flex; justify-content: space-around; align-items: center;
+      padding: 10px 0 20px; /* Extra padding for iPhone home bar */
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      z-index: 100;
+    }
+    .nav-btn {
+      background: none; border: none; flex: 1;
+      display: flex; flex-direction: column; align-items: center;
+      color: var(--text-secondary); font-size: 11px; font-weight: 600;
+      cursor: pointer; transition: 0.2s;
+    }
+    .nav-btn span { font-size: 20px; margin-bottom: 4px; }
+    .nav-btn.active { color: var(--nav-active); }
+
+    /* Empty State */
     .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
-    .error-box { background: #FEE2E2; color: #DC2626; padding: 12px; border-radius: 10px; text-align: center; margin: 16px; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>🔧 Админ-панель</h1>
-    <p>Управление заказами Foodhub</p>
+    <h1>🔧 Foodhub Admin</h1>
+    <p>Управление рестораном</p>
   </div>
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-value" id="stat-new">0</div>
-      <div class="stat-label">🆕 Новых</div>
+  <!-- VIEW 1: DASHBOARD -->
+  <div id="dashboard-view" class="view-section active">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-revenue">0₽</div>
+        <div class="stat-label"> Выручка</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-orders">0</div>
+        <div class="stat-label">📦 Заказов</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-new">0</div>
+        <div class="stat-label">🆕 Новых</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-active">0</div>
+        <div class="stat-label">🔥 В работе</div>
+      </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-value" id="stat-active">0</div>
-      <div class="stat-label">🔥 В работе</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value" id="stat-count">0</div>
-      <div class="stat-label">📦 Всего</div>
-    </div>
-    <div class="stat-card">      <div class="stat-value" id="stat-revenue">0₽</div>
-      <div class="stat-label">💰 Выручка</div>
+    <div style="text-align:center; color:#888; margin-top:20px;">
+       Загрузка статистики...
     </div>
   </div>
-
-  <div class="orders-container">
-    <button class="refresh-btn" onclick="loadOrders()">🔄 Обновить список</button>
+  <!-- VIEW 2: ORDERS -->
+  <div id="orders-view" class="view-section">
     <div id="orders-list"></div>
   </div>
+
+  <!-- VIEW 3: MENU -->
+  <div id="menu-view" class="view-section">
+    <div id="menu-list"></div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('dashboard', this)">
+      <span></span> Главная
+    </button>
+    <button class="nav-btn" onclick="switchTab('orders', this)">
+      <span>📦</span> Заказы
+    </button>
+    <button class="nav-btn" onclick="switchTab('menu', this)">
+      <span>🍔</span> Меню
+    </button>
+  </nav>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
 
-    // !!! ВАЖНО: Укажи здесь свой Telegram ID (ADMIN_ID) !!!
-    const MY_ID = 8043971654; 
+    const MY_ID = 8043971654; // Твой ADMIN_ID
     const userId = tg.initDataUnsafe?.user?.id;
 
-    // Проверка прав доступа
     if (userId !== MY_ID) {
-      document.body.innerHTML = `
-        <div style="text-align:center; padding:50px 20px;">
-          <h1>🚫 Доступ запрещён</h1>
-          <p>У вас нет прав администратора.</p>
-          <p>Ваш ID: ${userId}</p>
-        </div>
-      `;
+      document.body.innerHTML = '<div style="text-align:center;padding:50px;">🚫 Доступ запрещён</div>';
       throw new Error('Access Denied');
     }
 
     const statusLabels = {
-      'pending': '🆕 Новый',
-      'cooking': '👨‍🍳 Готовится',
-      'delivering': '🚀 В пути',
-      'delivered': '✅ Доставлен',
-      'cancelled': '❌ Отменён'
+      'pending': '🆕 Новый', 'cooking': '👨‍🍳 Готовится', 
+      'delivering': ' В пути', 'delivered': '✅ Доставлен', 'cancelled': '❌ Отменён'
     };
 
-    async function loadOrders() {
-      const listEl = document.getElementById('orders-list');
-      listEl.innerHTML = '<div class="empty-state">⏳ Загрузка заказов...</div>';
+    let allOrders = [];
 
-      try {
-        const res = await fetch('/api/admin/orders');
-        const orders = await res.json();
-        renderOrders(orders);
-        updateStats(orders);
-      } catch (e) {
-        listEl.innerHTML = '<div class="error-box">❌ Ошибка подключения к серверу</div>';      }
+    // === NAVIGATION ===
+    function switchTab(tabId, btnElement) {
+      // Hide all views
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      // Show selected
+      document.getElementById(tabId + '-view').classList.add('active');
+            // Update buttons
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      btnElement.classList.add('active');
+
+      // Load data based on tab
+      if (tabId === 'orders') loadOrders();
+      if (tabId === 'menu') loadMenu();
+      if (tabId === 'dashboard') updateDashboard();
     }
 
-    function updateStats(orders) {
-      const newCount = orders.filter(o => o.status === 'pending').length;
-      const activeCount = orders.filter(o => ['cooking', 'delivering'].includes(o.status)).length;
-      const totalRev = orders.filter(o => o.status !== 'cancelled')
-                             .reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
-
-      document.getElementById('stat-new').textContent = newCount;
-      document.getElementById('stat-active').textContent = activeCount;
-      document.getElementById('stat-count').textContent = orders.length;
-      document.getElementById('stat-revenue').textContent = totalRev.toLocaleString() + '₽';
+    // === DATA LOADING ===
+    async function loadOrders() {
+      const listEl = document.getElementById('orders-list');
+      listEl.innerHTML = '<div class="empty-state">⏳ Загрузка...</div>';
+      try {
+        const res = await fetch('/api/admin/orders');
+        allOrders = await res.json();
+        renderOrders(allOrders);
+        updateDashboard(); // Обновляем и дашборд
+      } catch { listEl.innerHTML = '<div class="empty-state"> Ошибка загрузки</div>'; }
     }
 
     function renderOrders(orders) {
       const listEl = document.getElementById('orders-list');
-      
-      if (!orders || orders.length === 0) {
-        listEl.innerHTML = '<div class="empty-state">📭 Заказов пока нет</div>';
+      if (orders.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">📭 Заказов нет</div>';
         return;
       }
-
       listEl.innerHTML = orders.map(order => {
-        // Распаковка товаров из JSON строки
-        let itemsHtml = 'Нет информации о товарах';
+        let itemsHtml = 'Нет данных';
         try {
-          if (order.items) {
-            const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-            if (Array.isArray(items)) {
-              itemsHtml = items.map(i => `• <b>${i.name}</b> x${i.qty}`).join('<br>');
-            }
-          }
-        } catch (e) {
-          itemsHtml = order.items || 'Ошибка чтения';
-        }
+          const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+          if (Array.isArray(items)) itemsHtml = items.map(i => `• <b>${i.name}</b> x${i.qty}`).join('<br>');
+        } catch { itemsHtml = order.items; }
 
         return `
           <div class="order-card">
             <div class="order-top">
-              <span class="order-id">Заказ #${order.id}</span>
+              <span class="order-id">#${order.id}</span>
               <span class="badge status-${order.status}">${statusLabels[order.status] || order.status}</span>
             </div>
-            
-            <div class="order-info">
-              📍 <b>${order.address || 'Адрес не указан'}</b>
+            <div class="order-info">📍 ${order.address || 'Нет адреса'}</div>
+            <div class="order-items-box">${itemsHtml}</div>
+            <div class="order-top">
+              <span style="font-weight:700">${parseFloat(order.total_amount).toLocaleString()} ₽</span>
+              <span style="font-size:11px;color:#888">${new Date(order.created_at).toLocaleTimeString()}</span>
             </div>
-            ${order.comment ? `<div class="order-info">💬 ${order.comment}</div>` : ''}
-            
-            <div class="order-items-box">              ${itemsHtml}
-            </div>
-
-            <div class="order-top" style="margin-top:8px">
-              <span style="font-weight:700; font-size:16px;">${parseFloat(order.total_amount).toLocaleString()} ₽</span>
-              <span style="font-size:12px; color:#888;">${new Date(order.created_at).toLocaleString()}</span>
-            </div>
-
             <select class="status-select" onchange="changeStatus(${order.id}, this.value)">
-              ${Object.keys(statusLabels).map(key => 
-                `<option value="${key}" ${order.status === key ? 'selected' : ''}>${statusLabels[key]}</option>`
-              ).join('')}
-            </select>
-          </div>
-        `;
+              ${Object.keys(statusLabels).map(key => `<option value="${key}" ${order.status===key?'selected':''}>${statusLabels[key]}</option>`).join('')}
+            </select>          </div>`;
       }).join('');
+    }
+
+    async function loadMenu() {
+      const listEl = document.getElementById('menu-list');
+      listEl.innerHTML = '<div class="empty-state">⏳ Загрузка меню...</div>';
+      try {
+        const res = await fetch('/api/menu');
+        const items = await res.json();
+        listEl.innerHTML = items.map(item => `
+          <div class="menu-item">
+            <img src="${item.image}" class="menu-img" onerror="this.src='https://via.placeholder.com/50'">
+            <div class="menu-details">
+              <div class="menu-name">${item.name}</div>
+              <div style="font-size:12px;color:#666">${item.category}</div>
+            </div>
+            <div class="menu-price">${item.price} ₽</div>
+          </div>
+        `).join('');
+      } catch { listEl.innerHTML = '<div class="empty-state">❌ Ошибка</div>'; }
+    }
+
+    function updateDashboard() {
+      if (!allOrders.length) return;
+      const revenue = allOrders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + parseFloat(o.total_amount), 0);
+      const newCount = allOrders.filter(o => o.status === 'pending').length;
+      const activeCount = allOrders.filter(o => ['cooking', 'delivering'].includes(o.status)).length;
+
+      document.getElementById('stat-revenue').textContent = revenue.toLocaleString() + ' ₽';
+      document.getElementById('stat-orders').textContent = allOrders.length;
+      document.getElementById('stat-new').textContent = newCount;
+      document.getElementById('stat-active').textContent = activeCount;
     }
 
     async function changeStatus(id, newStatus) {
       try {
-        // Обновляем статус
         await fetch(`/api/admin/order/${id}/status`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
         });
-
-        // Уведомляем бота (отправляем запрос на сервер)
-        // В реальном приложении здесь лучше вызывать Telegram API напрямую с сервера, 
-        // но для простоты отправляем запрос на наш endpoint notify
-        // await fetch('/api/admin/notify', ...); 
-        
         tg.HapticFeedback.notificationOccurred('success');
-        loadOrders(); // Перезагружаем список
-      } catch (e) {
-        tg.HapticFeedback.notificationOccurred('error');
-        alert('Ошибка изменения статуса');
-      }
+        loadOrders();
+      } catch { tg.HapticFeedback.notificationOccurred('error'); }
     }
 
-    // Запуск
+    // Start
     loadOrders();
   </script>
-</body>
-</html>
+</body></html>
