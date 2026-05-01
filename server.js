@@ -100,7 +100,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // === 🍔 МЕНЮ ===
 app.get('/api/menu', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, name, description, price, category, image_url FROM menu_items WHERE is_active = true ORDER BY id');
+    const result = await pool.query('SELECT id, name, description, price, category, image_url FROM menu_items ORDER BY id');
     res.json(result.rows);
   } catch (err) { 
     console.error('Menu error:', err);
