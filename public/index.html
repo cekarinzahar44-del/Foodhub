@@ -11,16 +11,31 @@
 <body class="loading">
 
   <!-- ЗАСТАВКА -->
-  <div id="splash-screen">
-    <div class="splash-content">
-      <div class="logo-container">
-        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Лого" class="splash-logo">
-      </div>
-      <h1 class="splash-title">ЕдаТут</h1>
-      <div class="tagline">Быстро. Вкусно. Удобно.</div>
+  <!-- ЗАСТАВКА С АНИМАЦИЕЙ -->
+<div id="splash-screen">
+  <!-- Контейнер для летающих бургеров -->
+  <div class="flying-emojis" id="flying-emojis"></div>
+  
+  <div class="splash-content">
+    <div class="logo-container">
+      <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Лого" class="splash-logo">
+      <!-- Пульсирующий круг вокруг лого -->
+      <div class="logo-ring"></div>
+    </div>
+    <h1 class="splash-title">
+      <span class="title-letter" style="animation-delay: 0.1s">Е</span>
+      <span class="title-letter" style="animation-delay: 0.2s">д</span>
+      <span class="title-letter" style="animation-delay: 0.3s">а</span>
+      <span class="title-letter" style="animation-delay: 0.4s">Т</span>
+      <span class="title-letter" style="animation-delay: 0.5s">у</span>
+      <span class="title-letter" style="animation-delay: 0.6s">т</span>
+    </h1>
+    <div class="tagline">Быстро. Вкусно. Удобно.</div>
+    <div class="loader-container">
       <div class="loader"></div>
     </div>
   </div>
+</div>
 
   <!-- ГЛАВНАЯ -->
   <div id="page-home" class="page active">
