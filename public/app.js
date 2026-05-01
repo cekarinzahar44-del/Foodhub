@@ -7,16 +7,46 @@ let menu = [];
 let currentUser = tg.initDataUnsafe?.user || {};
 let currentCategory = 'all';
 
-// Скрываем заставку
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    document.body.classList.remove('loading');
-    document.getElementById('splash-screen').style.display = 'none';
-    loadMenu();
-    loadUserProfile();
-  }, 1500);
-});
+// 🍔 ГЕНЕРАТОР ЛЕТАЮЩИХ БУРГЕРОВ (НОВОЕ)
+function createFlyingBurgers() {
+  const container = document.getElementById('flying-emojis');
+  if (!container) return;
+  
+  const emojis = ['🍔', '🍕', '🍟', '', '', ''];
+  const count = 12;
+  
+  for (let i = 0; i < count; i++) {
+    const burger = document.createElement('div');
+    burger.className = 'flying-burger';
+    burger.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    burger.style.left = Math.random() * 100 + '%';
+    burger.style.fontSize = (16 + Math.random() * 20) + 'px';
+    burger.style.animationDelay = (Math.random() * 4) + 's';
+    burger.style.animationDuration = (4 + Math.random() * 3) + 's';
+    burger.style.opacity = 0.3 + Math.random() * 0.5;
+    container.appendChild(burger);
+  }
+}
 
+// Скрываем заставку с анимацией
+window.addEventListener('load', () => {
+  // Запускаем летающие эмодзи сразу
+  createFlyingBurgers();
+  
+  // Через 2 секунды плавно скрываем заставку
+  setTimeout(() => {
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+      splash.classList.add('hiding'); // Добавляем класс анимации исчезновения
+      setTimeout(() => {
+        splash.style.display = 'none';
+        document.body.classList.remove('loading');
+        loadMenu();
+        loadUserProfile();
+      }, 600);
+    }
+  }, 2000);
+});
 // Навигация
 document.querySelectorAll('.nav-item').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -47,30 +77,26 @@ document.getElementById('search-input')?.addEventListener('input', (e) => {
 async function loadMenu() {
   try {
     const res = await fetch('/api/menu');
-    menu = await res.json();    renderMenu();
+    menu = await res.json();
+    renderMenu();
   } catch (err) {
     console.error('Menu error:', err);
-    document.getElementById('menu-grid').innerHTML = `
-      <div class="empty-state" style="padding: 40px;">
-        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-        <div>Не удалось загрузить меню</div>
-        <button onclick="location.reload()" class="btn-primary" style="margin-top: 16px;">🔄 Обновить</button>
-      </div>
-    `;
+    const grid = document.getElementById('menu-grid');
+    if(grid) grid.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>Не удалось загрузить меню</div>`;
   }
 }
 
 // Отрисовка меню
 function renderMenu(searchTerm = '') {
   const grid = document.getElementById('menu-grid');
-  let items = menu;
+  if (!grid) return;
   
+  let items = menu;
   if (currentCategory !== 'all') items = items.filter(i => i.category === currentCategory);
   if (searchTerm) items = items.filter(i => i.name.toLowerCase().includes(searchTerm));
   
   if (items.length === 0) {
-    grid.innerHTML = '<div class="empty-state" style="padding: 40px;">🔍 Ничего не найдено</div>';
-    return;
+    grid.innerHTML = '<div class="empty-state">🔍 Ничего не найдено</div>';    return;
   }
   
   grid.innerHTML = items.map(item => `
@@ -97,6 +123,7 @@ function renderMenu(searchTerm = '') {
     });
   });
 }
+
 // Корзина
 function addToCart(id) {
   const item = menu.find(i => i.id === id);
@@ -118,8 +145,7 @@ function updateCartQty(id, delta) {
   const item = cart.find(c => c.id === id);
   if (!item) return;
   item.qty += delta;
-  if (item.qty <= 0) removeFromCart(id);
-  else { renderCart(); updateCartBadge(); }
+  if (item.qty <= 0) removeFromCart(id);  else { renderCart(); updateCartBadge(); }
 }
 
 function updateCartBadge() {
@@ -133,8 +159,9 @@ function updateCartBadge() {
 
 function renderCart() {
   const container = document.getElementById('cart-items-list');
+  if (!container) return;
   if (cart.length === 0) {
-    container.innerHTML = '<div class="empty-state" style="padding: 40px;">🛒 Корзина пуста</div>';
+    container.innerHTML = '<div class="empty-state">🛒 Корзина пуста</div>';
     document.getElementById('cart-total-display').textContent = '0 ₽';
     return;
   }
@@ -145,34 +172,29 @@ function renderCart() {
     return `
       <div class="cart-item">
         <div class="cart-item-info">
-          <div class="cart-item-name">${item.name}</div>          <div class="cart-item-price">${item.price} ₽</div>
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">${item.price} ₽</div>
         </div>
-        <div class="cart-item-controls">
-          <button class="qty-btn minus" data-id="${item.id}">−</button>
-          <span class="qty">${item.qty}</span>
-          <button class="qty-btn plus" data-id="${item.id}">+</button>
-          <button class="remove-btn" data-id="${item.id}">🗑</button>
+        <div class="cart-controls">
+          <button class="qty-btn" onclick="updateCartQty(${item.id}, -1)">−</button>
+          <span class="qty-val">${item.qty}</span>
+          <button class="qty-btn" onclick="updateCartQty(${item.id}, 1)">+</button>
         </div>
       </div>
     `;
   }).join('');
   
   document.getElementById('cart-total-display').textContent = `${total} ₽`;
-  
-  container.querySelectorAll('.qty-btn.minus').forEach(btn => btn.onclick = () => updateCartQty(parseInt(btn.dataset.id), -1));
-  container.querySelectorAll('.qty-btn.plus').forEach(btn => btn.onclick = () => updateCartQty(parseInt(btn.dataset.id), 1));
-  container.querySelectorAll('.remove-btn').forEach(btn => btn.onclick = () => removeFromCart(parseInt(btn.dataset.id)));
 }
 
-// ОФОРМЛЕНИЕ ЗАКАЗА С ОПЛАТОЙ
+// ОФОРМЛЕНИЕ ЗАКАЗА
 document.getElementById('submit-order-btn')?.addEventListener('click', async () => {
   if (cart.length === 0) { tg.showAlert('Корзина пуста!'); return; }
   
   const address = document.getElementById('address')?.value.trim();
   if (!address) { tg.showAlert('Укажите адрес!'); return; }
   
-  const comment = document.getElementById('comment')?.value || '';
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const comment = document.getElementById('comment')?.value || '';  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const userId = currentUser.id;
   
   const btn = document.getElementById('submit-order-btn');
@@ -194,7 +216,8 @@ document.getElementById('submit-order-btn')?.addEventListener('click', async () 
           tg.showAlert('✅ Оплата прошла успешно!');
           cart = []; updateCartBadge(); renderCart();
           document.getElementById('address').value = '';
-          document.getElementById('comment').value = '';        } else {
+          document.getElementById('comment').value = '';
+        } else {
           tg.showAlert('❌ Оплата отменена');
         }
         btn.disabled = false;
@@ -220,8 +243,7 @@ async function loadUserProfile() {
   const qrContainer = document.getElementById('qrcode');
   if (qrContainer && typeof QRCode !== 'undefined') {
     qrContainer.innerHTML = '';
-    new QRCode(qrContainer, { text: `foodhub_${currentUser.id}`, width: 120, height: 120 });
-  }
+    new QRCode(qrContainer, { text: `foodhub_${currentUser.id}`, width: 120, height: 120 });  }
   
   const refLink = document.getElementById('ref-link');
   if (refLink) refLink.textContent = `https://t.me/${tg.botInfo?.username || 'bot'}?start=ref_${currentUser.id}`;
