@@ -20,16 +20,23 @@ body.loading .page {
 
 /* === ЗАСТАВКА (SPLASH SCREEN) === */
 /* === 🍔 АНИМИРОВАННАЯ ЗАСТАВКА === */
+/* === 🍔 АНИМИРОВАННАЯ ЗАСТАВКА === */
 #splash-screen {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  /* Анимированный градиент из 4 цветов */
-  background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe, #667eea);
+  /* Переливающийся градиент: розовый <-> голубой <-> фиолетовый */
+  background: linear-gradient(-45deg, 
+    #e91e63,   /* Розовый */
+    #9c27b0,   /* Фиолетовый */
+    #2196f3,   /* Голубой */
+    #00bcd4,   /* Бирюзовый */
+    #e91e63    /* Возврат к розовому */
+  );
   background-size: 400% 400%;
-  animation: gradientShift 8s ease infinite;
+  animation: gradientFlow 8s ease infinite;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,29 +44,47 @@ body.loading .page {
   overflow: hidden;
 }
 
-/* Переливание цветов фона */
-@keyframes gradientShift {
+/* Анимация переливания фона */
+@keyframes gradientFlow {
   0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  25% { background-position: 100% 50%; }
+  50% { background-position: 100% 100%; }
+  75% { background-position: 0% 100%; }
   100% { background-position: 0% 50%; }
 }
 
-/* Плавающие эмодзи еды на фоне */
-#splash-screen::before {
-  content: '';
+/* Контейнер для летающих эмодзи */
+.flying-emojis {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: 
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.08) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 70%);
-  animation: pulseBg 4s ease-in-out infinite;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-@keyframes pulseBg {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
+/* Летающий бургер */
+.flying-burger {
+  position: absolute;
+  font-size: 24px;
+  opacity: 0.6;
+  animation: floatUp linear infinite;
+  pointer-events: none;
+}
+@keyframes floatUp {
+  0% {
+    transform: translateY(100vh) rotate(0deg) scale(0.5);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-100px) rotate(360deg) scale(1);
+    opacity: 0;
+  }
 }
 
 /* Контент заставки */
@@ -69,152 +94,185 @@ body.loading .page {
   position: relative;
   z-index: 10;
 }
+
+/* Контейнер логотипа */
+.logo-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
 /* 🍔 Анимированный бургер */
 .splash-logo {
-  width: 130px;
-  height: 130px;
-  margin-bottom: 20px;
-  /* Комбинированная анимация: подпрыгивание + пульсация + тень */
-  animation: 
-    burgerBounce 2s ease-in-out infinite,
-    burgerShadow 2s ease-in-out infinite;
-  filter: drop-shadow(0 15px 25px rgba(0,0,0,0.3));
+  width: 140px;
+  height: 140px;
+  /* Пружинящая анимация */
+  animation: logoSpring 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
+  position: relative;
+  z-index: 2;
 }
 
-/* Подпрыгивание бургера */
-@keyframes burgerBounce {
+@keyframes logoSpring {
   0%, 100% { 
-    transform: translateY(0) scale(1) rotate(0deg); 
+    transform: scale(1) translateY(0); 
   }
-  15% { 
-    transform: translateY(-20px) scale(1.05) rotate(-8deg); 
+  10% { 
+    transform: scale(1.1) translateY(-15px);   }
+  20% { 
+    transform: scale(1.05) translateY(-5px); 
   }
   30% { 
-    transform: translateY(-10px) scale(1.02) rotate(4deg); 
+    transform: scale(1.08) translateY(-10px); 
   }
-  45% { 
-    transform: translateY(-15px) scale(1.04) rotate(-4deg); 
-  }
-  60% { 
-    transform: translateY(0) scale(1) rotate(0deg); 
+  40% { 
+    transform: scale(1) translateY(0); 
   }
 }
 
-/* Пульсация тени под бургером */
-@keyframes burgerShadow {
-  0%, 100% { filter: drop-shadow(0 15px 25px rgba(0,0,0,0.3)); }
-  30% { filter: drop-shadow(0 25px 35px rgba(0,0,0,0.4)); }
-  60% { filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2)); }
+/* Пульсирующее кольцо вокруг лого */
+.logo-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 160px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  animation: ringPulse 2s ease-out infinite;
 }
 
-/* Заголовок */
+@keyframes ringPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+    border-width: 3px;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+    border-width: 1px;
+  }
+}
+
+/* Заголовок с побуквенной анимацией */
 .splash-title {
-  font-size: 36px;
-  font-weight: 800;
-  margin-bottom: 8px;
-  letter-spacing: 1px;
-  /* Легкое свечение текста */
-  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  animation: titleGlow 2s ease-in-out infinite alternate;
+  font-size: 42px;
+  font-weight: 900;
+  margin-bottom: 10px;
+  letter-spacing: 3px;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
 }
-@keyframes titleGlow {
-  0% { text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-  100% { text-shadow: 0 2px 20px rgba(255,255,255,0.3); }
+
+.title-letter {  display: inline-block;
+  opacity: 0;
+  transform: translateY(20px) scale(0.5);
+  animation: letterPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  text-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+@keyframes letterPop {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.5);
+  }
+  60% {
+    transform: translateY(-5px) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .tagline {
   font-size: 15px;
-  opacity: 0.9;
-  margin-bottom: 35px;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease forwards 1s;
   font-weight: 500;
+  letter-spacing: 1px;
+  margin-bottom: 30px;
 }
 
-/* 🔄 Длинная полоска загрузки */
-.loader {
-  width: 160px; /* Было 50px, стало длиннее */
-  height: 6px;  /* Чуть толще */
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  overflow: hidden;
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+}
+
+/* Контейнер полоски загрузки */
+.loader-container {
+  width: 200px;
   margin: 0 auto;
-  backdrop-filter: blur(10px);
-  box-shadow: 
-    inset 0 1px 3px rgba(0,0,0,0.2),
-    0 1px 0 rgba(255,255,255,0.1);
 }
 
-/* Бегунок загрузки */
+/* Жёлтая полоска загрузки */
+.loader {
+  width: 100%;  height: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* Бегунок полоски */
 .loader::after {
   content: '';
-  display: block;
-  width: 50px; /* Длиннее бегунок */
-  height: 100%;
-  background: linear-gradient(90deg, 
-    rgba(255,255,255,0.8), 
-    #fff, 
-    rgba(255,255,255,0.8)
-  );
-  border-radius: 6px;
-  animation: loadingSlide 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  box-shadow: 0 0 10px rgba(255,255,255,0.5);
-}
-
-@keyframes loadingSlide {
-  0% { 
-    transform: translateX(-60px);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }  90% {
-    opacity: 1;
-  }
-  100% { 
-    transform: translateX(180px); /* Длинная траектория */
-    opacity: 0;
-  }
-}
-
-/* Декоративные плавающие элементы */
-.splash-content::before,
-.splash-content::after {
-  content: '🍔';
   position: absolute;
-  font-size: 40px;
-  opacity: 0.15;
-  animation: floatEmoji 6s ease-in-out infinite;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ffeb3b, #ffc107, #ffeb3b);
+  border-radius: 4px;
+  animation: loadingProgress 1.5s ease-in-out infinite;
+  box-shadow: 0 0 15px rgba(255, 235, 59, 0.6);
 }
 
-.splash-content::before {
-  top: -80px;
-  left: -60px;
-  animation-delay: 0s;
-}
-
-.splash-content::after {
-  content: '🍕';
-  bottom: -80px;
-  right: -60px;
-  animation-delay: 3s;
-}
-
-@keyframes floatEmoji {
-  0%, 100% { 
-    transform: translateY(0) rotate(0deg) scale(1); 
+@keyframes loadingProgress {
+  0% {
+    width: 0%;
+    left: 0;
   }
-  50% { 
-    transform: translateY(-20px) rotate(15deg) scale(1.1); 
+  50% {
+    width: 70%;
+    left: 15%;
+  }
+  100% {
+    width: 0%;
+    left: 100%;
   }
 }
 
 /* Плавное исчезновение заставки */
 #splash-screen.hiding {
-  animation: fadeOut 0.5s ease forwards;
+  animation: splashExit 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes fadeOut {
-  0% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.1); }
+@keyframes splashExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.05);    filter: blur(10px);
+  }
+}
+
+/* Скрываем основной контент при загрузке */
+body.loading .page,
+body.loading .bottom-nav {
+  display: none !important;
 }
 
 /* === СТРАНИЦЫ === */
