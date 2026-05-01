@@ -2,154 +2,175 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Foodhub Меню</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ЕдаТут</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Библиотека для QR-кода -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    :root { --bg: #F2F4F7; --card: #FFF; --primary: #3b82f6; --text: #111827; --sec: #6B7280; }
-    body { margin:0; padding:0; padding-bottom:100px; font-family: system-ui, sans-serif; background:var(--bg); color:var(--text); }
-    .header { background:linear-gradient(135deg, #1e3a8a, #3b82f6); color:white; padding:20px 16px; border-radius:0 0 20px 20px; }
-    .header h1 { margin:0; font-size:22px; } .header p { margin:4px 0 0; opacity:0.9; font-size:14px; }
-    .tabs { display:flex; gap:8px; padding:12px 16px; overflow-x:auto; scrollbar-width:none; }
-    .tabs::-webkit-scrollbar { display:none; }
-    .tab { padding:8px 16px; background:var(--card); border-radius:20px; font-size:14px; font-weight:600; white-space:nowrap; cursor:pointer; border:1px solid transparent; }
-    .tab.active { background:var(--primary); color:white; }
-    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 16px; }
-    .item-card { background:var(--card); border-radius:16px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
-    .img { width:100%; height:120px; object-fit:cover; background:#eee; }
-    .info { padding:10px; } .name { font-weight:600; font-size:15px; margin:0 0 4px; } .desc { font-size:12px; color:var(--sec); margin:0 0 8px; height:32px; overflow:hidden; }
-    .price-row { display:flex; justify-content:space-between; align-items:center; } .price { font-weight:700; color:var(--primary); }
-    .add-btn { background:var(--primary); color:white; border:none; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; }
-    .cart-bar { position:fixed; bottom:0; left:0; width:100%; background:var(--card); padding:12px 16px 24px; box-shadow:0 -4px 12px rgba(0,0,0,0.1); display:none; justify-content:space-between; align-items:center; }
-    .cart-bar.show { display:flex; }
-    .cart-info { font-weight:600; } .cart-btn { background:var(--primary); color:white; border:none; padding:12px 24px; border-radius:12px; font-weight:600; cursor:pointer; }
-    .empty { text-align:center; padding:40px; color:var(--sec); }
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:100; align-items:flex-end; }
-    .modal.open { display:flex; }
-    .modal-content { background:white; width:100%; padding:20px; border-radius:20px 20px 0 0; }
-    input { width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:10px; font-size:15px; box-sizing:border-box; }
-    .pay-btn { background:#10B981; color:white; border:none; padding:14px; width:100%; border-radius:12px; font-size:16px; font-weight:600; margin-top:10px; }
-  </style>
 </head>
-<body>
-  <div class="header"><h1>🍽️ Foodhub</h1><p>Вкусная еда с доставкой</p></div>
-  <div class="tabs" id="tabs"></div>
-  <div class="grid" id="products"></div>
+<body class="loading">
 
-  <div class="cart-bar" id="cart-bar">
-    <div class="cart-info"><span id="cart-count">0</span> шт. · <span id="cart-total">0</span> ₽</div>
-    <button class="cart-btn" onclick="openCheckout()">Оформить</button>
+  <!-- ЗАСТАВКА -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <div class="logo-container">
+        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Лого" class="splash-logo">
+      </div>
+      <h1 class="splash-title">ЕдаТут</h1>
+      <div class="tagline">Быстро. Вкусно. Удобно.</div>
+      <div class="loader"></div>
+    </div>
   </div>
 
-  <div id="checkout-modal" class="modal">
-    <div class="modal-content">
-      <h3>📍 Адрес доставки</h3>
-      <input type="text" id="address" placeholder="Улица, дом, квартира">
-      <input type="text" id="comment" placeholder="Комментарий (необязательно)">
-      <button class="pay-btn" onclick="payOrder()">💳 Оплатить <span id="pay-total">0</span> ₽</button>
-      <button style="width:100%;padding:12px;margin-top:8px;background:#eee;border:none;border-radius:10px;font-weight:600;" onclick="closeCheckout()">Отмена</button>    </div>
+  <!-- СТРАНИЦА 1: ГЛАВНАЯ -->
+  <div id="page-home" class="page active">
+    <header class="top-header">
+      <h1>Меню</h1>
+    </header>
+    
+    <div class="marquee-container">
+      <div class="marquee-track">
+        <div class="marquee-group">
+          <span>🔥 СКИДКИ 50%</span><span class="separator">•</span>
+          <span>🚀 ДОСТАВКА 15 МИН</span><span class="separator">•</span>
+          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="separator">•</span>
+        </div>
+        <div class="marquee-group">
+          <span>🔥 СКИДКИ 50%</span><span class="separator">•</span>
+          <span>🚀 ДОСТАВКА 15 МИН</span><span class="separator">•</span>
+          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="separator">•</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="🔍 Найти блюдо...">
+    </div>
+    <div class="categories-container">
+      <button class="cat-btn active" data-cat="all">🔥 Все</button>
+      <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>
+      <button class="cat-btn" data-cat="pizza">🍕 Пицца</button>
+      <button class="cat-btn" data-cat="drink">🥤 Напитки</button>
+      <button class="cat-btn" data-cat="fry">🍟 Фритюр</button>
+    </div>
+
+    <main id="menu-grid" class="menu-grid"></main>
   </div>
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready(); tg.expand();
-    tg.MainButton.setParams({ color: '#3b82f6', text: 'Корзина пуста' });
+  <!-- СТРАНИЦА 2: КОРЗИНА -->
+  <div id="page-cart" class="page">
+    <header class="top-header"><h1>Корзина</h1></header>
+    <div class="page-content cart-page-content">
+      <div id="cart-items-list" class="cart-items-list"></div>
+      <div class="cart-summary">
+        <div class="cart-total-row">
+          <span>Итого:</span>
+          <span id="cart-total-display">0 ₽</span>
+        </div>
+        <input type="text" id="address" class="input-field" placeholder="Адрес доставки">
+        <textarea id="comment" class="input-field" placeholder="Комментарий курьеру"></textarea>
+        <button id="submit-order-btn" class="btn-primary">Оформить заказ</button>
+      </div>
+    </div>
+  </div>
 
-    let menu = [], cart = [], category = 'all';
-
-    async function init() {
-      try {
-        const res = await fetch('/api/menu');
-        menu = await res.json();
-        renderTabs();
-        renderProducts();
-      } catch { document.getElementById('products').innerHTML = '<div class="empty">❌ Ошибка загрузки меню</div>'; }
-    }
-
-    function renderTabs() {
-      const cats = ['all', ...new Set(menu.map(i => i.category))];
-      document.getElementById('tabs').innerHTML = cats.map(c => 
-        `<div class="tab ${c===category?'active':''}" onclick="filter('${c}')">${c==='all'?'🔥 Все':c.charAt(0).toUpperCase()+c.slice(1)}</div>`
-      ).join('');
-    }
-
-    function filter(cat) { category = cat; renderTabs(); renderProducts(); }
-
-    function renderProducts() {
-      const list = category === 'all' ? menu : menu.filter(i => i.category === category);
-      document.getElementById('products').innerHTML = list.map(i => `
-        <div class="item-card">
-          <img src="${i.image_url}" class="img" onerror="this.src='https://via.placeholder.com/300x200'">
-          <div class="info">
-            <div class="name">${i.name}</div>
-            <div class="desc">${i.description}</div>
-            <div class="price-row">
-              <span class="price">${i.price} ₽</span>
-              <button class="add-btn" onclick="addToCart(${i.id})">+</button>
-            </div>
+  <!-- СТРАНИЦА 3: ЗАКАЗЫ -->
+  <div id="page-orders" class="page">
+    <header class="top-header"><h1>Мои заказы</h1></header>
+    <div class="page-content">
+      <div class="empty-state">📦 У вас пока нет активных заказов</div>
+      <div class="orders-history">
+        <div class="order-card">
+          <div class="order-header">
+            <span class="order-id">Заказ #124</span>
+            <span class="order-status status-done">Доставлен</span>
+          </div>
+          <div class="order-items">Чизбургер Классик x2</div>
+          <div class="order-footer">
+            <span class="order-date">Вчера</span>
+            <span class="order-price">700 ₽</span>
           </div>
         </div>
-      `).join('') || '<div class="empty">Нет товаров</div>';
-    }
+      </div>
+    </div>
+  </div>
 
-    function addToCart(id) {
-      const item = menu.find(i => i.id === id);
-      const existing = cart.find(c => c.id === id);
-      if (existing) existing.qty++; else cart.push({ ...item, qty: 1 });
-      updateCartUI();      tg.HapticFeedback.impactOccurred('light');
-    }
-
-    function updateCartUI() {
-      const count = cart.reduce((s, i) => s + i.qty, 0);
-      const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-      document.getElementById('cart-count').textContent = count;
-      document.getElementById('cart-total').textContent = total;
-      document.getElementById('pay-total').textContent = total;
-      document.getElementById('cart-bar').classList.toggle('show', count > 0);
-      tg.MainButton.setText(`Корзина: ${count} шт. · ${total} ₽`).show();
-    }
-
-    function openCheckout() {
-      document.getElementById('checkout-modal').classList.add('open');
-    }
-    function closeCheckout() {
-      document.getElementById('checkout-modal').classList.remove('open');
-    }
-
-    async function payOrder() {
-      const address = document.getElementById('address').value.trim();
-      if (!address) return tg.showAlert('Укажите адрес доставки!');
+  <!-- СТРАНИЦА 4: ПРОФИЛЬ (С КАРТОЙ ЛОЯЛЬНОСТИ) -->  <div id="page-profile" class="page">
+    <header class="top-header"><h1>Профиль</h1></header>
+    <div class="page-content profile-page-content">
       
-      tg.MainButton.showProgress();
-      try {
-        const userId = tg.initDataUnsafe?.user?.id;
-        const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-        
-        const res = await fetch('/api/payment/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, items: cart, total, address, comment: document.getElementById('comment').value })
-        });
-        
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error);
+      <!-- Шапка профиля -->
+      <div class="profile-header">
+        <div class="avatar-circle">👤</div>
+        <div class="user-name" id="profile-name">Загрузка...</div>
+        <div class="user-id" id="profile-id">ID: ...</div>
+      </div>
 
-        // 🌟 ОТКРЫВАЕМ ОПЛАТУ ВНУТРИ MINI APP
-        tg.openInvoice(data.invoice_url, (status) => {
-          tg.MainButton.hideProgress();
-          if (status === 'paid') {
-            tg.showAlert('✅ Оплата прошла успешно! Заказ принят.');
-            cart = []; updateCartUI(); closeCheckout();
-          } else {
-            tg.showAlert('❌ Оплата отменена или не удалась.');
-          }
-        });
-      } catch (err) {
-        tg.MainButton.hideProgress();        tg.showAlert('❌ ' + err.message);
-      }
-    }
+      <!-- Статистика -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-value" id="bonus-points">0 ₽</div>
+          <div class="stat-label">Бонусы</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="orders-count">1</div>
+          <div class="stat-label">Заказы</div>
+        </div>
+      </div>
 
-    init();
-  </script>
+      <!-- НАКОПИТЕЛЬНАЯ КАРТА С QR -->
+      <div class="loyalty-card">
+        <div class="card-header">
+          <div class="card-logo">🍔 ЕдаТут</div>
+          <div class="card-status">Active</div>
+        </div>
+        <div class="card-number" id="card-number">•••• •••• •••• 0000</div>
+        <div class="card-qr-container">
+          <div id="qrcode"></div>
+        </div>
+        <div class="card-footer">
+          <span class="card-label">Накопительная карта</span>
+          <span class="card-points">5% кэшбэк</span>
+        </div>
+      </div>
+
+      <!-- ПРОМО (перенесено вниз) -->
+      <div class="referral-block">
+        <div class="ref-title">🎁 Пригласи друга</div>
+        <div class="ref-subtitle">100₽ за каждого!</div>
+        <div class="ref-link-box" id="ref-link">https://t.me/...</div>
+        <button class="btn-copy" onclick="copyRefLink()">Копировать</button>
+      </div>
+
+      <!-- Кнопки действий -->
+      <div class="profile-actions">
+        <button class="action-btn">💬 Поддержка</button>        <button class="action-btn">⚙️ Настройки</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- НИЖНЯЯ НАВИГАЦИЯ -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-target="page-home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Главная</span>
+    </button>
+    <button class="nav-item" data-target="page-orders">
+      <span class="nav-icon">📦</span>
+      <span class="nav-label">Заказы</span>
+    </button>
+    <button class="nav-item cart-tab" data-target="page-cart">
+      <span class="nav-icon">🛒</span>
+      <span class="nav-label">Корзина</span>
+      <span class="badge" id="nav-cart-badge">0</span>
+    </button>
+    <button class="nav-item" data-target="page-profile">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Профиль</span>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
 </body>
 </html>
