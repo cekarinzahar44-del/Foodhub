@@ -11,7 +11,7 @@ let currentCategory = 'all';
 function createFlyingBurgers() {
   const container = document.getElementById('flying-emojis');
   if (!container) return;
-  const emojis = ['🍔', '', '🍟', '🥤', '🌭', ''];
+  const emojis = ['🍔', '', '🍟', '🥤', '', ''];
   for (let i = 0; i < 15; i++) {
     const el = document.createElement('div');
     el.className = 'flying-burger';
@@ -41,13 +41,22 @@ window.addEventListener('load', () => {
   }, 2000);
 });
 
-// НАВИГАЦИЯ
+// 🧭 НАВИГАЦИЯ (ИСПРАВЛЕННАЯ)
 document.querySelectorAll('.nav-item').forEach(btn => {
   btn.addEventListener('click', () => {
+    // 1. Снимаем выделение со всех кнопок
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+        // 2. Скрываем ВСЕ страницы
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(btn.dataset.target).classList.add('active');    if (btn.dataset.target === 'page-cart') renderCart();
+    
+    // 3. Показываем только нужную (по ID из data-target)
+    const targetId = btn.dataset.target;
+    const targetPage = document.getElementById(targetId);
+    if (targetPage) targetPage.classList.add('active');
+    
+    // 4. Обновляем корзину при переходе на неё
+    if (targetId === 'page-cart') renderCart();
   });
 });
 
@@ -88,7 +97,6 @@ function renderMenu(search = '') {
     grid.innerHTML = '<div class="empty-state">🔍 Ничего не найдено</div>';
     return;
   }
-
   grid.innerHTML = items.map(item => `
     <div class="menu-item">
       <div class="item-image"><img src="${item.image_url}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/300'"></div>
@@ -96,7 +104,8 @@ function renderMenu(search = '') {
         <div class="item-name">${item.name}</div>
         <div class="item-desc">${item.description || ''}</div>
         <div class="item-footer">
-          <div class="item-price">${item.price} ₽</div>          <button class="add-btn" onclick="addToCart(${item.id})">+</button>
+          <div class="item-price">${item.price} ₽</div>
+          <button class="add-btn" onclick="addToCart(${item.id})">+</button>
         </div>
       </div>
     </div>
@@ -136,8 +145,7 @@ function renderCart() {
   if (cart.length === 0) {
     list.innerHTML = '';
     emptyMsg.classList.remove('hidden');
-    checkout.classList.add('hidden');
-    return;
+    checkout.classList.add('hidden');    return;
   }
 
   emptyMsg.classList.add('hidden');
@@ -145,7 +153,8 @@ function renderCart() {
 
   list.innerHTML = cart.map(item => `
     <div class="cart-item">
-      <div class="cart-item-info">        <div class="cart-item-name">${item.name}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-price">${item.price * item.qty} ₽</div>
       </div>
       <div class="cart-controls">
@@ -185,8 +194,7 @@ document.getElementById('submit-order-btn')?.addEventListener('click', async () 
           document.getElementById('address').value = '';
         } else {
           tg.showAlert('❌ Оплата отменена');
-        }
-        btn.disabled = false;
+        }        btn.disabled = false;
         btn.textContent = '💳 Оплатить заказ';
       });
     } else throw new Error(data.error);
@@ -194,7 +202,8 @@ document.getElementById('submit-order-btn')?.addEventListener('click', async () 
     tg.showAlert('❌ Ошибка: ' + e.message);
     btn.disabled = false;
     btn.textContent = '💳 Оплатить заказ';
-  }});
+  }
+});
 
 // ПРОФИЛЬ
 async function loadUserProfile() {
