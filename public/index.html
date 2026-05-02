@@ -3,91 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>ЕдаТут</title>
+  <title>FoodHub</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="loading">
 
-  <!-- ЗАСТАВКА -->
-  <!-- ЗАСТАВКА С АНИМАЦИЕЙ -->
-<div id="splash-screen">
-  <!-- Контейнер для летающих бургеров -->
-  <div class="flying-emojis" id="flying-emojis"></div>
-  
-  <div class="splash-content">
-    <div class="logo-container">
-      <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Лого" class="splash-logo">
-      <!-- Пульсирующий круг вокруг лого -->
-      <div class="logo-ring"></div>
-    </div>
-    <h1 class="splash-title">
-      <span class="title-letter" style="animation-delay: 0.1s">Е</span>
-      <span class="title-letter" style="animation-delay: 0.2s">д</span>
-      <span class="title-letter" style="animation-delay: 0.3s">а</span>
-      <span class="title-letter" style="animation-delay: 0.4s">Т</span>
-      <span class="title-letter" style="animation-delay: 0.5s">у</span>
-      <span class="title-letter" style="animation-delay: 0.6s">т</span>
-    </h1>
-    <div class="tagline">Быстро. Вкусно. Удобно.</div>
-    <div class="loader-container">
-      <div class="loader"></div>
-    </div>
-  </div>
-</div>
-
-  <!-- ГЛАВНАЯ -->
-  <div id="page-home" class="page active">
-    <header class="top-header"><h1>Меню</h1></header>
-    
-    <div class="marquee-container">
-      <div class="marquee-track">
-        <div class="marquee-group">
-          <span>🔥 СКИДКИ 50%</span><span class="separator">•</span>
-          <span>🚀 ДОСТАВКА 15 МИН</span><span class="separator">•</span>
-          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="separator">•</span>
-        </div>
-        <div class="marquee-group">
-          <span>🔥 СКИДКИ 50%</span><span class="separator">•</span>
-          <span>🚀 ДОСТАВКА 15 МИН</span><span class="separator">•</span>
-          <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span><span class="separator">•</span>
-        </div>
+  <!-- 🎬 ЗАСТАВКА -->
+  <div id="splash-screen">
+    <div class="flying-emojis" id="flying-emojis"></div>
+    <div class="splash-content">
+      <div class="logo-container">
+        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Лого" class="splash-logo">
+        <div class="logo-ring"></div>
+      </div>
+      <h1 class="splash-title">
+        <span class="letter" style="animation-delay: 0.1s">Е</span>
+        <span class="letter" style="animation-delay: 0.2s">д</span>
+        <span class="letter" style="animation-delay: 0.3s">а</span>
+        <span class="letter" style="animation-delay: 0.4s">Т</span>
+        <span class="letter" style="animation-delay: 0.5s">у</span>
+        <span class="letter" style="animation-delay: 0.6s">т</span>
+      </h1>
+      <div class="tagline">Быстро. Вкусно. Удобно.</div>
+      <div class="loader-wrapper">
+        <div class="loader"></div>
       </div>
     </div>
+  </div>
 
+  <!-- 🏠 ГЛАВНАЯ (МЕНЮ) -->
+  <div id="page-home" class="page active">
+    <header class="top-header"><h1>Меню</h1></header>
+    <div class="marquee-container">
+      <div class="marquee-track">
+        <span>🔥 СКИДКИ 50%</span> • <span>🚀 ДОСТАВКА 15 МИН</span> • <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span> •
+        <span>🔥 СКИДКИ 50%</span> • <span>🚀 ДОСТАВКА 15 МИН</span> • <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span> •
+      </div>
+    </div>
     <div class="search-bar">
       <input type="text" id="search-input" placeholder="🔍 Найти блюдо...">
     </div>
-    
     <div class="categories-container">
       <button class="cat-btn active" data-cat="all">🔥 Все</button>
       <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>      <button class="cat-btn" data-cat="pizza">🍕 Пицца</button>
       <button class="cat-btn" data-cat="drink">🥤 Напитки</button>
       <button class="cat-btn" data-cat="fry">🍟 Фритюр</button>
     </div>
-
     <main id="menu-grid" class="menu-grid"></main>
   </div>
 
-  <!-- КОРЗИНА -->
+  <!-- 🛒 КОРЗИНА -->
   <div id="page-cart" class="page">
     <header class="top-header"><h1>Корзина</h1></header>
-    <div class="page-content cart-page-content">
-      <div id="cart-items-list" class="cart-items-list"></div>
-      <div class="cart-summary">
-        <div class="cart-total-row">
+    <div class="page-content">
+      <div id="cart-items-list"></div>
+      <div id="cart-empty-msg" class="empty-state hidden">🛒 Корзина пуста</div>
+      
+      <div id="cart-checkout-block" class="checkout-block hidden">
+        <div class="summary-row">
           <span>Итого:</span>
-          <span id="cart-total-display">0 ₽</span>
+          <span id="cart-total-display" class="total-price">0 ₽</span>
         </div>
-        <input type="text" id="address" class="input-field" placeholder="Адрес доставки">
-        <textarea id="comment" class="input-field" placeholder="Комментарий курьеру"></textarea>
+        <input type="text" id="address" class="input-field" placeholder="📍 Адрес доставки">
+        <textarea id="comment" class="input-field" placeholder="💬 Комментарий курьеру"></textarea>
         <button id="submit-order-btn" class="btn-primary">💳 Оплатить заказ</button>
       </div>
     </div>
   </div>
 
-  <!-- ЗАКАЗЫ -->
+  <!-- 📦 ЗАКАЗЫ -->
   <div id="page-orders" class="page">
     <header class="top-header"><h1>Мои заказы</h1></header>
     <div class="page-content">
@@ -95,73 +81,61 @@
     </div>
   </div>
 
-  <!-- ПРОФИЛЬ -->
+  <!-- 👤 ПРОФИЛЬ -->
   <div id="page-profile" class="page">
     <header class="top-header"><h1>Профиль</h1></header>
-    <div class="page-content profile-page-content">
-      <div class="profile-header">
-        <div class="avatar-circle">👤</div>
-        <div class="user-name" id="profile-name">Загрузка...</div>
-        <div class="user-id" id="profile-id">ID: ...</div>
-      </div>
-
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-value" id="bonus-points">0 ₽</div>
-          <div class="stat-label">Бонусы</div>
+    <div class="page-content">
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="avatar">👤</div>
+          <div class="user-info">
+            <h3 id="profile-name">Загрузка...</h3>
+            <span id="profile-id" class="user-id">ID: ...</span>
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="orders-count">0</div>          <div class="stat-label">Заказы</div>
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-val" id="bonus-points">0 ₽</span>
+            <span class="stat-label">Бонусы</span>          </div>
+          <div class="stat-item">
+            <span class="stat-val">0</span>
+            <span class="stat-label">Заказы</span>
+          </div>
         </div>
       </div>
 
       <div class="loyalty-card">
-        <div class="card-header">
-          <div class="card-logo">🍔 ЕдаТут</div>
-          <div class="card-status">Active</div>
+        <div class="card-top">
+          <span>🍔 ЕдаТут Card</span>
+          <span class="status">Active</span>
         </div>
-        <div class="card-number" id="card-number">•••• •••• •••• 0000</div>
-        <div class="card-qr-container">
+        <div class="card-number" id="card-number">**** **** **** 0000</div>
+        <div class="qr-wrapper">
           <div id="qrcode"></div>
         </div>
-        <div class="card-footer">
-          <span class="card-label">Накопительная карта</span>
-          <span class="card-points">5% кэшбэк</span>
+        <div class="card-bottom">
+          <span>5% кэшбэк</span>
+          <span>Накопительная</span>
         </div>
       </div>
 
-      <div class="referral-block">
-        <div class="ref-title">🎁 Пригласи друга</div>
-        <div class="ref-subtitle">100₽ за каждого!</div>
-        <div class="ref-link-box" id="ref-link">https://t.me/...</div>
-        <button class="btn-copy" onclick="copyRefLink()">Копировать</button>
-      </div>
-
-      <div class="profile-actions">
-        <button class="action-btn">💬 Поддержка</button>
-        <button class="action-btn">⚙️ Настройки</button>
+      <div class="referral-box">
+        <h4>🎁 Пригласи друга</h4>
+        <p>100₽ за каждого друга!</p>
+        <div class="ref-link-row">
+          <span id="ref-link">https://t.me/...</span>
+          <button class="btn-copy" onclick="copyRefLink()">Копировать</button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- НАВИГАЦИЯ -->
   <nav class="bottom-nav">
-    <button class="nav-item active" data-target="page-home">
-      <span class="nav-icon">🏠</span>
-      <span class="nav-label">Главная</span>
-    </button>
-    <button class="nav-item" data-target="page-orders">
-      <span class="nav-icon">📦</span>
-      <span class="nav-label">Заказы</span>
-    </button>
-    <button class="nav-item cart-tab" data-target="page-cart">
-      <span class="nav-icon">🛒</span>
-      <span class="nav-label">Корзина</span>
-      <span class="badge" id="nav-cart-badge">0</span>
-    </button>
-    <button class="nav-item" data-target="page-profile">
-      <span class="nav-icon">👤</span>      <span class="nav-label">Профиль</span>
-    </button>
+    <button class="nav-item active" data-target="page-home"><span class="nav-icon">🏠</span><span>Главная</span></button>
+    <button class="nav-item" data-target="page-orders"><span class="nav-icon">📦</span><span>Заказы</span></button>
+    <button class="nav-item cart-tab" data-target="page-cart"><span class="nav-icon">🛒</span><span>Корзина</span><span class="badge" id="nav-cart-badge">0</span></button>
+    <button class="nav-item" data-target="page-profile"><span class="nav-icon">👤</span><span>Профиль</span></button>
   </nav>
 
   <script src="app.js"></script>
