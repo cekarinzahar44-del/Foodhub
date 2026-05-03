@@ -1,4 +1,4 @@
-require('dotenv').config();
+\require('dotenv').config();
 const express = require('express');
 const { Telegraf } = require('telegraf');
 const path = require('path');
@@ -27,6 +27,7 @@ async function initDB() {
     console.log('✅ PostgreSQL подключён!');
     client.release();
 
+    // Таблица пользователей
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -38,6 +39,7 @@ async function initDB() {
       )
     `);
 
+    // Таблица заказов
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
@@ -45,11 +47,12 @@ async function initDB() {
         total_amount DECIMAL(10,2) NOT NULL,
         status VARCHAR(50) DEFAULT 'pending_payment',
         address TEXT,
-        comment TEXT,
-        items TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP      )
+        comment TEXT,        items TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
     `);
 
+    // Таблица товаров меню
     await pool.query(`
       CREATE TABLE IF NOT EXISTS menu_items (
         id SERIAL PRIMARY KEY,
@@ -63,6 +66,7 @@ async function initDB() {
       )
     `);
 
+    // 🔥 Таблица смен
     await pool.query(`
       CREATE TABLE IF NOT EXISTS shifts (
         id SERIAL PRIMARY KEY,
@@ -72,12 +76,14 @@ async function initDB() {
       )
     `);
 
+    // Миграция: добавляем is_active если нет
     await pool.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true`);
     await pool.query(`UPDATE menu_items SET is_active = true WHERE is_active IS NULL`);
 
     const { rows } = await pool.query('SELECT COUNT(*) FROM menu_items');
     console.log(`📊 Товаров в БД: ${rows[0].count}`);
 
+    // Добавляем тестовые товары если пусто
     if (parseInt(rows[0].count) === 0) {
       await pool.query(`
         INSERT INTO menu_items (name, description, price, category, image_url, is_active) VALUES
@@ -90,18 +96,18 @@ async function initDB() {
     }
     console.log('✅ Таблицы готовы');
   } catch (err) {
-    console.error('❌ Ошибка БД:', err.message);
-    pool = null;
+    console.error('❌ Ошибка БД:', err.message);    pool = null;
   }
 }
 
 function requireDB(req, res, next) {
-  if (!pool) return res.status(503).json({ error: 'База данных недоступна' });  next();
+  if (!pool) return res.status(503).json({ error: 'База данных недоступна' });
+  next();
 }
 
-// === 🔥 ПЛАНИРОВЩИК СМЕН (11:00 - 23:30) ===
+// === 🔥 ПЛАНИРОВЩИК СМЕН (ТЕСТ: 01:20 - 01:30 МСК) ===
 async function startShiftScheduler() {
-  console.log('🕒 Планировщик смен запущен (11:00 - 23:30 МСК)');
+  console.log('🕒 Планировщик смен запущен (ТЕСТ: 01:20 - 01:30 МСК)');
   
   setInterval(async () => {
     try {
@@ -113,15 +119,17 @@ async function startShiftScheduler() {
       const m = moscow.getMinutes();
       const today = moscow.toISOString().split('T')[0];
 
-      // Открытие: 11:00 - 11:01 (окно 2 минуты)
-      if (h === 11 && m < 2 && lastOpenDate !== today) {
+      // 🔥 ОТКРЫТИЕ: 01:20 - 01:22 (окно 2 минуты)
+      if (h === 8 && m < 2 && lastOpenDate !== today) {
         lastOpenDate = today;
+        console.log(`🔔 ${h}:${m} - Время открывать смену`);
         await openShift();
       }
 
-      // Закрытие: 23:30 - 23:31 (окно 2 минуты)
-      if (h === 23 && m >= 30 && m < 32 && lastCloseDate !== today) {
+      // 🔥 ЗАКРЫТИЕ: 01:30 - 01:32 (окно 2 минуты)
+      if (h === 9 && m < 2 && lastCloseDate !== today) {
         lastCloseDate = today;
+        console.log(`🔔 ${h}:${m} - Время закрывать смену`);
         await closeShift();
       }
     } catch (err) {
@@ -134,27 +142,45 @@ async function getActiveShift() {
   try {
     const res = await pool.query('SELECT * FROM shifts WHERE is_active = true ORDER BY id DESC LIMIT 1');
     return res.rows[0] || null;
-  } catch { return null; }
-}
+  } catch (err) {
+    console.error('DB Error in getActiveShift:', err.message);
+    return null;
+  }}
 
 async function openShift() {
   try {
     const active = await getActiveShift();
-    if (active) { console.log('🟢 Смена уже открыта'); return; }
+    if (active) { 
+      console.log('🟢 Смена уже открыта в базе данных'); 
+      return; 
+    }
     
+    console.log('💾 Вставляю новую смену в БД...');
     await pool.query('INSERT INTO shifts (is_active) VALUES (true)');
+    
     console.log('🟢 Смена открыта автоматически');
-    await bot.telegram.sendMessage(ADMIN_ID, '🟢 *Смена открыта*\n⏰ Время работы: 11:00 - 23:30 МСК', { parse_mode: 'Markdown' });
-  } catch (err) { console.error('Ошибка открытия смены:', err.message); }}
+    if (bot && ADMIN_ID) {
+      await bot.telegram.sendMessage(ADMIN_ID, '🟢 *Смена открыта*\n⏰ Время работы: 01:20 - 01:30МСК (ТЕСТ)', { parse_mode: 'Markdown' });
+    }
+  } catch (err) { 
+    console.error('Ошибка открытия смены:', err.message); 
+  }
+}
 
 async function closeShift() {
   try {
     const active = await getActiveShift();
-    if (!active) { console.log('⚪ Нет активной смены для закрытия'); return; }
+    
+    if (!active) { 
+      console.log('⚪ Нет активной смены для закрытия'); 
+      return; 
+    }
 
+    console.log(`🔴 Закрываю смену #${active.id}...`);
     await pool.query('UPDATE shifts SET closed_at = NOW(), is_active = false WHERE id = $1', [active.id]);
     console.log('🔴 Смена закрыта автоматически');
 
+    // Собираем статистику за смену
     const stats = await pool.query(`
       SELECT 
         COALESCE(SUM(total_amount), 0) as revenue,
@@ -169,7 +195,7 @@ async function closeShift() {
     const completedOrders = parseInt(stats.rows[0].completed_orders);
     const cancelledOrders = parseInt(stats.rows[0].cancelled_orders);
     const avgCheck = completedOrders > 0 ? Math.round(totalRevenue / completedOrders) : 0;
-
+    // Считаем проданные товары
     const itemCounts = {};
     for (const row of stats.rows) {
       try {
@@ -194,9 +220,14 @@ async function closeShift() {
       `✅ Завершено: ${completedOrders}\n` +
       `❌ Отменено: ${cancelledOrders}\n\n` +
       `📦 *Продажи:*\n${itemsList || 'Нет продаж'}`;
-    await bot.telegram.sendMessage(ADMIN_ID, report, { parse_mode: 'Markdown' });
+
+    if (bot && ADMIN_ID) {
+      await bot.telegram.sendMessage(ADMIN_ID, report, { parse_mode: 'Markdown' });
+    }
     console.log('📧 Отчёт отправлен админу');
-  } catch (err) { console.error('Ошибка закрытия смены:', err.message); }
+  } catch (err) { 
+    console.error('Ошибка закрытия смены:', err.message); 
+  }
 }
 
 // Запуск планировщика после инициализации БД
@@ -212,8 +243,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // === МЕНЮ ===
-app.get('/api/menu', requireDB, async (req, res) => {
-  try {
+app.get('/api/menu', requireDB, async (req, res) => {  try {
     const result = await pool.query('SELECT id, name, description, price, category, image_url FROM menu_items WHERE is_active = true ORDER BY id');
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -243,7 +273,8 @@ app.post('/api/payment/create', async (req, res) => {
 
 bot.on('pre_checkout_query', async (ctx) => { await ctx.answerPreCheckoutQuery(true); });
 
-bot.on('successful_payment', async (ctx) => {  try {
+bot.on('successful_payment', async (ctx) => {
+  try {
     const payload = JSON.parse(ctx.message.successful_payment.invoice_payload);
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', ['paid', payload.orderId]);
     await bot.telegram.sendMessage(ADMIN_ID, `💰 *Оплата получена!*\n📦 Заказ #${payload.orderId}\n💵 ${ctx.message.successful_payment.total_amount / 100} ₽`, { parse_mode: 'Markdown' });
@@ -261,8 +292,7 @@ app.get('/api/admin/orders', async (req, res) => {
     if (from) { query += ` AND DATE(created_at) >= $${idx}`; params.push(from); idx++; }
     if (to) { query += ` AND DATE(created_at) <= $${idx}`; params.push(to); idx++; }
     query += ' ORDER BY created_at DESC LIMIT 100';
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    const result = await pool.query(query, params);    res.json(result.rows);
   } catch (err) { res.status(500).json({ error: 'Ошибка загрузки заказов' }); }
 });
 
@@ -292,7 +322,8 @@ app.post('/api/admin/menu', requireDB, async (req, res) => {
   const { name, description, price, category, image_url } = req.body;
   try {
     const result = await pool.query('INSERT INTO menu_items (name, description, price, category, image_url, is_active) VALUES ($1, $2, $3, $4, $5, true) RETURNING *', [name, description, price, category, image_url || '']);
-    res.json(result.rows[0]);  } catch { res.status(500).json({ error: 'Ошибка создания' }); }
+    res.json(result.rows[0]);
+  } catch { res.status(500).json({ error: 'Ошибка создания' }); }
 });
 
 app.put('/api/admin/menu/:id', requireDB, async (req, res) => {
@@ -310,8 +341,7 @@ app.delete('/api/admin/menu/:id', requireDB, async (req, res) => {
   } catch { res.status(500).json({ error: 'Ошибка удаления' }); }
 });
 
-// === АДМИНКА: МЕТРИКИ ===
-app.get('/api/admin/metrics', requireDB, async (req, res) => {
+// === АДМИНКА: МЕТРИКИ ===app.get('/api/admin/metrics', requireDB, async (req, res) => {
   try {
     const revenue = await pool.query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status != 'cancelled'");
     const orders = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status != 'cancelled'");
@@ -341,6 +371,7 @@ app.get('/api/user/:userId/balance', requireDB, async (req, res) => {
     res.json({ balance: result.rows[0]?.bonus_balance || 0 });
   } catch { res.status(500).json({ balance: 0 }); }
 });
+
 app.get('/api/user/:userId/orders', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20', [BigInt(req.params.userId)]);
@@ -352,15 +383,14 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Ручное управление для тестов
+// 🔥 РУЧНОЕ УПРАВЛЕНИЕ СМЕНАМИ
 app.post('/api/admin/shift/open', async (req, res) => { await openShift(); res.json({ success: true }); });
 app.post('/api/admin/shift/close', async (req, res) => { await closeShift(); res.json({ success: true }); });
 
-// === ВСПОМОГАТЕЛЬНЫЕ ===
+// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 function getStatusText(status) {
   const s = { 'pending_payment': '⏳ Ожидает оплаты', 'paid': '✅ Оплачен', 'cooking': '👨‍🍳 Готовится', 'ready': '🎁 Готов к выдаче', 'delivering': '🚚 Доставляется', 'delivered': '✅ Доставлен', 'cancelled': '❌ Отменён' };
-  return s[status] || status;
-}
+  return s[status] || status;}
 
 function getOrderDetails(order) {
   let items = 'Товары:\n';
