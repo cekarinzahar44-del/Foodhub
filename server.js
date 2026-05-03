@@ -46,16 +46,17 @@ async function createTables() {
     `);
 
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS menu_items (
-        id SERIAL PRIMARY KEY,        name TEXT NOT NULL,
-        description TEXT,
-        price DECIMAL(10,2) NOT NULL,
-        category TEXT,
-        image_url TEXT,
-        is_active BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+  CREATE TABLE IF NOT EXISTS orders (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES users(id),  -- 🔥 BIGINT вместо INTEGER!
+    total_amount DECIMAL(10,2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    address TEXT, 
+    comment TEXT, 
+    items TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
 
     // Добавляем товары если пусто
     const { rows } = await pool.query('SELECT COUNT(*) FROM menu_items');
