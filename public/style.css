@@ -149,3 +149,67 @@ body.loading .page, body.loading .bottom-nav { display: none; }
 
 .hidden { display: none !important; }
 .empty-state { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+
+/* === 📦 ЗАКАЗЫ === */
+.order-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-id {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.order-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-pending_payment { background: #FFF3CD; color: #856404; }
+.status-paid { background: #D4EDDA; color: #155724; }
+.status-cooking { background: #D1ECF1; color: #0C5460; }
+.status-ready { background: #C3E6CB; color: #155724; }
+.status-delivering { background: #FFE5D0; color: #856404; }
+.status-delivered { background: #D4EDDA; color: #155724; }
+.status-cancelled { background: #F8D7DA; color: #721C24; }
+
+.order-items {
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+}
+
+.order-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.order-total {
+  font-weight: 800;
+  font-size: 18px;
+  color: #FF6B6B;
+}
+
+.order-date {
+  font-size: 12px;
+  color: #999;
+}
