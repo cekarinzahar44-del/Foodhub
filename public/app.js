@@ -7,64 +7,49 @@ let menu = [];
 let currentUser = tg.initDataUnsafe?.user || {};
 let currentCategory = 'all';
 
-// ── 💾 ФУНКЦИИ СОХРАНЕНИЯ КОРЗИНЫ ──
+/* ════ КОРЗИНА: localStorage ════ */
 function saveCart() {
-  try {
-    localStorage.setItem('foodhub_cart', JSON.stringify(cart));
-  } catch (e) {
-    console.error('Cart save error:', e);
-  }
+  try { localStorage.setItem('fh_cart', JSON.stringify(cart)); } catch {}
 }
-
 function loadCart() {
   try {
-    const saved = localStorage.getItem('foodhub_cart');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        cart = parsed;
-        return true;
-      }
-    }
-  } catch (e) {
-    console.error('Cart load error:', e);
-  }
+    const s = localStorage.getItem('fh_cart');
+    if (s) { const p = JSON.parse(s); if (Array.isArray(p)) { cart = p; return true; } }
+  } catch {}
   return false;
 }
 
-// ── ЗАСТАВКА ──
+/* ════ SPLASH ════ */
 window.addEventListener('load', () => {
-  if (loadCart()) {
-    updateBadge();
-  }
-  
+  if (loadCart()) updateBadge();
+  loadMenu();
+  loadUserProfile();
+
   setTimeout(() => {
     const splash = document.getElementById('splash-screen');
-    if (splash) {
-      splash.classList.add('hiding');
-      setTimeout(() => {
-        splash.style.display = 'none';
-        document.body.classList.remove('loading');
-        loadMenu();
-        loadUserProfile();
-      }, 500);    }
-  }, 2000);
+    if (!splash) return;
+    splash.classList.add('hiding');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      document.body.classList.remove('loading');
+    }, 550);
+  }, 2200);
 });
 
-// ── НАВИГАЦИЯ ──
+/* ════ НАВИГАЦИЯ ════ */
 document.querySelectorAll('.nav-item').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const targetPage = document.getElementById(btn.dataset.target);
-    if (targetPage) targetPage.classList.add('active');
-    if (btn.dataset.target === 'page-cart') renderCart();
+    const page = document.getElementById(btn.dataset.target);
+    if (page) page.classList.add('active');
+    if (btn.dataset.target === 'page-cart')   renderCart();
     if (btn.dataset.target === 'page-orders') loadUserOrders();
   });
 });
 
-// ── КАТЕГОРИИ ──
+/* ════ КАТЕГОРИИ ════ */
 document.querySelectorAll('.cat-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -74,55 +59,65 @@ document.querySelectorAll('.cat-btn').forEach(btn => {
   });
 });
 
-// ── ПОИСК ──
-document.getElementById('search-input')?.addEventListener('input', (e) => {
+/* ════ ПОИСК ════ */
+document.getElementById('search-input')?.addEventListener('input', e => {
   renderMenu(e.target.value.toLowerCase().trim());
 });
 
-// ── ЗАГРУЗКА МЕНЮ ──
+/* ════ ЗАГРУЗКА МЕНЮ ════ */
 async function loadMenu() {
   const grid = document.getElementById('menu-grid');
-  grid.innerHTML = '<div class="empty-state">Загрузка меню...</div>';
+  if (!grid) return;
+  grid.innerHTML = '<div class="empty-state" style="grid-column:span 2">Загрузка меню...</div>';
   try {
     const res = await fetch('/api/menu');
-    if (!res.ok) throw new Error('Server error');
-    menu = await res.json();
+    if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error(data.error || 'Неверный формат');
+    menu = data;
+    if (menu.length === 0) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:span 2">Меню временно недоступно</div>';
+      return;
+    }
     renderMenu();
-  } catch {
-    grid.innerHTML = '<div class="empty-state">Не удалось загрузить меню. Попробуйте позже.</div>';
+  } catch (err) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:span 2">Не удалось загрузить меню<br><small style="color:rgba(255,255,255,0.25)">${err.message}</small></div>`;
   }
 }
 
-// ── ОТРИСОВКА МЕНЮ ──
+/* ════ РЕНДЕР МЕНЮ ════ */
 function renderMenu(search = '') {
   const grid = document.getElementById('menu-grid');
-  let items = menu;  if (currentCategory !== 'all') items = items.filter(i => i.category === currentCategory);
-  if (search) items = items.filter(i => i.name.toLowerCase().includes(search) || (i.description || '').toLowerCase().includes(search));
-
+  if (!grid) return;
+  let items = menu;
+  if (currentCategory !== 'all') items = items.filter(i => i.category === currentCategory);
+  if (search) items = items.filter(i =>
+    i.name.toLowerCase().includes(search) ||
+    (i.description || '').toLowerCase().includes(search)
+  );
   if (items.length === 0) {
-    grid.innerHTML = '<div class="empty-state">Ничего не найдено</div>';
+    grid.innerHTML = '<div class="empty-state" style="grid-column:span 2">Ничего не найдено</div>';
     return;
   }
-
   grid.innerHTML = items.map(item => `
     <div class="menu-item">
       <div class="item-image">
-        <img src="${item.image_url || ''}" alt="${item.name}"
-             onerror="this.src='https://via.placeholder.com/300x200/F3F4F6/9CA3AF?text=Фото'">
+        <img src="${item.image_url || ''}" alt="${item.name}" loading="lazy"
+             onerror="this.src='https://via.placeholder.com/300x180/111/333?text=+'">
       </div>
       <div class="item-info">
         <div class="item-name">${item.name}</div>
         <div class="item-desc">${item.description || ''}</div>
         <div class="item-footer">
           <div class="item-price">${parseFloat(item.price).toLocaleString('ru-RU')} ₽</div>
-          <button class="add-btn" onclick="addToCart(${item.id})" aria-label="Добавить в корзину">+</button>
+          <button class="add-btn" onclick="addToCart(${item.id})" aria-label="Добавить">+</button>
         </div>
       </div>
     </div>
   `).join('');
 }
 
-// ── КОРЗИНА ──
+/* ════ КОРЗИНА ════ */
 function addToCart(id) {
   const item = menu.find(i => i.id === id);
   if (!item) return;
@@ -130,8 +125,8 @@ function addToCart(id) {
   if (exist) exist.qty++;
   else cart.push({ ...item, qty: 1 });
   updateBadge();
-  tg.HapticFeedback.impactOccurred('light');
   saveCart();
+  try { tg.HapticFeedback.impactOccurred('light'); } catch {}
 }
 
 function updateQty(id, delta) {
@@ -145,7 +140,8 @@ function updateQty(id, delta) {
 }
 
 function updateBadge() {
-  const count = cart.reduce((s, i) => s + i.qty, 0);  const badge = document.getElementById('nav-cart-badge');
+  const count = cart.reduce((s, i) => s + i.qty, 0);
+  const badge = document.getElementById('nav-cart-badge');
   if (!badge) return;
   badge.textContent = count;
   badge.style.display = count > 0 ? 'flex' : 'none';
@@ -155,16 +151,16 @@ function renderCart() {
   const list     = document.getElementById('cart-items-list');
   const emptyMsg = document.getElementById('cart-empty-msg');
   const checkout = document.getElementById('cart-checkout-block');
+  if (!list) return;
 
   if (cart.length === 0) {
     list.innerHTML = '';
-    emptyMsg.classList.remove('hidden');
-    checkout.classList.add('hidden');
+    emptyMsg?.classList.remove('hidden');
+    checkout?.classList.add('hidden');
     return;
   }
-
-  emptyMsg.classList.add('hidden');
-  checkout.classList.remove('hidden');
+  emptyMsg?.classList.add('hidden');
+  checkout?.classList.remove('hidden');
 
   list.innerHTML = cart.map(item => `
     <div class="cart-item">
@@ -173,28 +169,31 @@ function renderCart() {
         <div class="cart-item-price">${(parseFloat(item.price) * item.qty).toLocaleString('ru-RU')} ₽</div>
       </div>
       <div class="cart-controls">
-        <button class="qty-btn" onclick="updateQty(${item.id}, -1)">−</button>
+        <button class="qty-btn" onclick="updateQty(${item.id},-1)">−</button>
         <span class="qty-val">${item.qty}</span>
-        <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
+        <button class="qty-btn" onclick="updateQty(${item.id},1)">+</button>
       </div>
     </div>
   `).join('');
 
   const total = cart.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
-  document.getElementById('cart-total-display').textContent = total.toLocaleString('ru-RU') + ' ₽';
+  const display = document.getElementById('cart-total-display');
+  if (display) display.textContent = total.toLocaleString('ru-RU') + ' ₽';
 }
 
-// ── ОПЛАТА ──
+/* ════ ОПЛАТА ════ */
 document.getElementById('submit-order-btn')?.addEventListener('click', async () => {
   const address = document.getElementById('address')?.value.trim();
-  if (!address) return tg.showAlert('Введите адрес доставки!');
-  if (!currentUser.id) return tg.showAlert('Не удалось определить пользователя. Перезапустите приложение.');
+  if (!address)       return tg.showAlert('Введите адрес доставки!');
+  if (!currentUser.id) return tg.showAlert('Не удалось определить пользователя.');
+  if (cart.length === 0) return tg.showAlert('Корзина пуста!');
 
   const btn = document.getElementById('submit-order-btn');
   btn.disabled = true;
   btn.textContent = 'Обработка...';
 
-  try {    const total = cart.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
+  try {
+    const total = cart.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
     const res = await fetch('/api/payment/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -207,26 +206,20 @@ document.getElementById('submit-order-btn')?.addEventListener('click', async () 
       })
     });
     const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Неизвестная ошибка');
 
-    if (data.success) {
-      tg.openInvoice(data.invoice_url, (status) => {
-        if (status === 'paid') {
-          tg.showAlert('Заказ оплачен! Ждите доставки.');
-          cart = [];
-          saveCart();
-          renderCart();
-          updateBadge();
-          if (document.getElementById('address')) document.getElementById('address').value = '';
-          if (document.getElementById('comment')) document.getElementById('comment').value = '';
-        } else {
-          tg.showAlert('Оплата не завершена.');
-        }
-        btn.disabled = false;
-        btn.textContent = 'Оплатить заказ';
-      });
-    } else {
-      throw new Error(data.error || 'Неизвестная ошибка');
-    }
+    tg.openInvoice(data.invoice_url, status => {
+      if (status === 'paid') {
+        tg.showAlert('Заказ оплачен! Ждите доставки.');
+        cart = []; saveCart(); renderCart(); updateBadge();
+        if (document.getElementById('address'))  document.getElementById('address').value  = '';
+        if (document.getElementById('comment'))   document.getElementById('comment').value   = '';
+      } else {
+        tg.showAlert('Оплата не завершена.');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Оплатить заказ';
+    });
   } catch (e) {
     tg.showAlert('Ошибка: ' + e.message);
     btn.disabled = false;
@@ -234,108 +227,91 @@ document.getElementById('submit-order-btn')?.addEventListener('click', async () 
   }
 });
 
-// ── ПРОФИЛЬ ──
-async function loadUserProfile() {
-  if (!currentUser.id) return;
-
-  document.getElementById('profile-name').textContent = currentUser.first_name || 'Пользователь';
-  document.getElementById('profile-id').textContent   = 'ID: ' + currentUser.id;
-  document.getElementById('card-number').textContent  = '•••• •••• •••• ' + String(currentUser.id).slice(-4);
-
-  // QR-код
-  const qrBox = document.getElementById('qrcode');  if (qrBox) {
-    qrBox.innerHTML = '';
-    if (typeof QRCode !== 'undefined') {
-      new QRCode(qrBox, { text: 'foodhub_user_' + currentUser.id, width: 80, height: 80 });
-    }
-  }
-
-  // Реферальная ссылка
-  const botUsername = tg.initDataUnsafe?.bot?.username || 'foodhub_bot';
-  const refEl = document.getElementById('ref-link');
-  if (refEl) refEl.textContent = `https://t.me/${botUsername}?start=ref_${currentUser.id}`;
-
-  // Баланс бонусов
-  try {
-    const res = await fetch(`/api/user/${currentUser.id}/balance`);
-    const { balance } = await res.json();
-    const el = document.getElementById('bonus-points');
-    if (el) el.textContent = parseFloat(balance).toLocaleString('ru-RU') + ' ₽';
-  } catch {}
-}
-
-// ── 📦 МОИ ЗАКАЗЫ (НОВАЯ ФУНКЦИЯ) ──
+/* ════ МОИ ЗАКАЗЫ ════ */
 async function loadUserOrders() {
   if (!currentUser.id) return;
-  
   const container = document.getElementById('orders-list');
   if (!container) return;
-  
-  container.innerHTML = '<div class="empty-state">Загрузка заказов...</div>';
-  
+  container.innerHTML = '<div class="empty-state">Загрузка...</div>';
   try {
     const res = await fetch(`/api/user/${currentUser.id}/orders`);
     const orders = await res.json();
-    
-    if (orders.length === 0) {
-      container.innerHTML = '<div class="empty-state">📦 У вас пока нет заказов</div>';
+    if (!Array.isArray(orders) || orders.length === 0) {
+      container.innerHTML = `
+        <div class="orders-empty">
+          <div class="orders-empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+              <rect x="9" y="3" width="6" height="4" rx="1"/>
+              <path d="M9 12h6M9 16h4"/>
+            </svg>
+          </div>
+          <h3>Заказов пока нет</h3>
+          <p>Ваши заказы появятся здесь после оформления</p>
+        </div>`;
       return;
     }
-    
-    container.innerHTML = orders.map(order => `
+    container.innerHTML = orders.map(o => `
       <div class="order-card">
         <div class="order-header">
-          <span class="order-id">Заказ #${order.id}</span>
-          <span class="order-status status-${order.status}">${getStatusText(order.status)}</span>
+          <span class="order-id">Заказ #${o.id}</span>
+          <span class="order-status status-${o.status}">${getStatusText(o.status)}</span>
         </div>
-        <div class="order-items">
-          ${getOrderItemsHTML(order)}
-        </div>
+        <div class="order-items">${getOrderItemsHTML(o)}</div>
         <div class="order-footer">
-          <span class="order-total">${parseFloat(order.total_amount).toLocaleString('ru-RU')} ₽</span>          <span class="order-date">${new Date(order.created_at).toLocaleString('ru-RU')}</span>
+          <span class="order-total">${parseFloat(o.total_amount).toLocaleString('ru-RU')} ₽</span>
+          <span class="order-date">${new Date(o.created_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
         </div>
       </div>
     `).join('');
-    
-  } catch (err) {
-    console.error('Load orders error:', err);
-    container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки заказов</div>';
-  }
-}
-
-// ── ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ЗАКАЗОВ ──
-function getStatusText(status) {
-  const statuses = {
-    'pending_payment': '⏳ Ожидает оплаты',
-    'paid': '✅ Оплачен',
-    'cooking': '👨‍🍳 Готовится',
-    'ready': '🎁 Готов к выдаче',
-    'delivering': '🚚 Доставляется',
-    'delivered': '✅ Доставлен',
-    'cancelled': '❌ Отменён'
-  };
-  return statuses[status] || status;
-}
-
-function getOrderItemsHTML(order) {
-  try {
-    const items = JSON.parse(order.items || '[]');
-    return items.map(item => `• ${item.name} × ${item.qty}`).join('<br>');
   } catch {
-    return 'Нет данных';
+    container.innerHTML = '<div class="empty-state">Ошибка загрузки заказов</div>';
   }
 }
 
-// ── УТИЛИТЫ ──
+function getStatusText(s) {
+  return { pending_payment:'Ожидает оплаты', paid:'Оплачен', cooking:'Готовится',
+           ready:'Готов к выдаче', delivering:'Доставляется', delivered:'Доставлен', cancelled:'Отменён' }[s] || s;
+}
+function getOrderItemsHTML(o) {
+  try { return JSON.parse(o.items||'[]').map(i=>`• ${i.name} × ${i.qty}`).join('<br>'); }
+  catch { return 'Нет данных'; }
+}
+
+/* ════ ПРОФИЛЬ ════ */
+async function loadUserProfile() {
+  if (!currentUser.id) return;
+  const name = currentUser.first_name || 'Пользователь';
+  const el = id => document.getElementById(id);
+
+  if (el('profile-name'))   el('profile-name').textContent  = name;
+  if (el('profile-id'))     el('profile-id').textContent    = 'ID: ' + currentUser.id;
+  if (el('profile-avatar')) el('profile-avatar').textContent = name.charAt(0).toUpperCase();
+  if (el('card-number'))    el('card-number').textContent   = '•••• •••• •••• ' + String(currentUser.id).slice(-4);
+
+  const qrBox = el('qrcode');
+  if (qrBox && typeof QRCode !== 'undefined') {
+    qrBox.innerHTML = '';
+    new QRCode(qrBox, { text: 'foodhub_' + currentUser.id, width: 80, height: 80 });
+  }
+
+  const botUsername = tg.initDataUnsafe?.bot?.username || 'foodhub_bot';
+  if (el('ref-link')) el('ref-link').textContent = `https://t.me/${botUsername}?start=ref_${currentUser.id}`;
+
+  try {
+    const res = await fetch(`/api/user/${currentUser.id}/balance`);
+    const { balance } = await res.json();
+    if (el('bonus-points')) el('bonus-points').textContent = parseFloat(balance||0).toLocaleString('ru-RU') + ' ₽';
+  } catch {}
+}
+
+/* ════ УТИЛИТЫ ════ */
 window.copyRefLink = () => {
   const text = document.getElementById('ref-link')?.textContent;
   if (!text) return;
-  navigator.clipboard.writeText(text).then(() => {
-    tg.showAlert('Ссылка скопирована!');
-  }).catch(() => {
-    tg.showAlert('Не удалось скопировать ссылку.');
-  });
+  navigator.clipboard.writeText(text)
+    .then(() => tg.showAlert('Ссылка скопирована!'))
+    .catch(() => tg.showAlert('Не удалось скопировать.'));
 };
 
-// Инициализация
 updateBadge();
