@@ -185,7 +185,7 @@ app.post('/api/admin/menu', async (req, res) => {
   const { name, description, price, category, image_url } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO menu_items (name, description, price, category, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      'INSERT INTO menu_items (name, description, price, category, image_url, is_active) VALUES ($1, $2, $3, $4, $5, true) RETURNING *',
       [name, description, price, category, image_url || '']
     );
     res.json(result.rows[0]);
