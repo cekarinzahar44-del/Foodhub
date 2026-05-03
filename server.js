@@ -61,6 +61,16 @@ async function initDB() {
       )
     `);
 
+    // 🔥 ТАБЛИЦА СМЕН
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS shifts (
+        id SERIAL PRIMARY KEY,
+        opened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        closed_at TIMESTAMP,
+        is_active BOOLEAN DEFAULT false
+      )
+    `);
+
     await pool.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true`);
     await pool.query(`UPDATE menu_items SET is_active = true WHERE is_active IS NULL`);
 
@@ -86,8 +96,7 @@ async function initDB() {
 
 function requireDB(req, res, next) {
   if (!pool) return res.status(503).json({ error: 'База данных недоступна' });
-  next();
-}
+  next();}
 
 initDB();
 
@@ -96,8 +105,137 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const PORT = process.env.PORT || 3000;
 const WEBAPP_URL = process.env.WEBAPP_URL;
 const ADMIN_ID = parseInt(process.env.ADMIN_ID);
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// === 🔥 АВТОМАТИЧЕСКИЕ СМЕНЫ ===
+async function getMoscowTime() {
+  const now = new Date();
+  const moscowStr = now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' });
+  return new Date(moscowStr);
+}
+
+async function getActiveShift() {
+  try {
+    const res = await pool.query('SELECT * FROM shifts WHERE is_active = true ORDER BY id DESC LIMIT 1');
+    return res.rows[0] || null;
+  } catch { return null; }
+}
+
+async function openShift() {
+  try {
+    const active = await getActiveShift();
+    if (active) {
+      console.log('🟢 Смена уже открыта');
+      return;
+    }
+    await pool.query('INSERT INTO shifts (is_active) VALUES (true)');
+    console.log('🟢 Смена открыта автоматически');
+    await bot.telegram.sendMessage(ADMIN_ID, '🟢 *Смена открыта*\nВремя работы: 11:00 - 23:00 МСК', { parse_mode: 'Markdown' });
+  } catch (err) {
+    console.error('Ошибка открытия смены:', err.message);
+  }
+}
+
+async function closeShift() {
+  try {
+    const active = await getActiveShift();
+    if (!active) {
+      console.log('⚪ Нет активной смены для закрытия');
+      return;
+    }
+    await pool.query('UPDATE shifts SET closed_at = NOW(), is_active = false WHERE id = $1', [active.id]);
+    console.log('🔴 Смена закрыта автоматически');
+
+    // Собираем статистику
+    const stats = await pool.query(`
+      SELECT 
+        COALESCE(SUM(total_amount), 0) as revenue,
+        COUNT(*) FILTER (WHERE status != 'cancelled') as completed_orders,
+        COUNT(*) FILTER (WHERE status = 'cancelled') as cancelled_orders,
+        items
+      FROM orders 
+      WHERE created_at >= $1 AND created_at <= $2
+    `, [active.opened_at, new Date()]);
+
+    const totalRevenue = parseFloat(stats.rows[0].revenue);
+    const completedOrders = parseInt(stats.rows[0].completed_orders);
+    const cancelledOrders = parseInt(stats.rows[0].cancelled_orders);
+    const avgCheck = completedOrders > 0 ? Math.round(totalRevenue / completedOrders) : 0;
+
+    // Считаем проданные товары
+    const itemCounts = {};
+    for (const row of stats.rows) {
+      try {
+        const items = typeof row.items === 'string' ? JSON.parse(row.items) : row.items;
+        if (Array.isArray(items)) {
+          items.forEach(item => {
+            itemCounts[item.name] = (itemCounts[item.name] || 0) + (item.qty || 1);
+          });
+        }
+      } catch {}
+    }
+
+    const openTime = active.opened_at.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' });
+    const closeTime = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' });
+
+    let itemsList = Object.entries(itemCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => `• ${name} × ${count}`)
+      .join('\n');
+
+    const report = ` *Отчёт за смену*\n⏰ ${openTime} - ${closeTime} МСК\n\n` +
+      `💰 Общая выручка: ${totalRevenue.toLocaleString('ru-RU')} ₽\n` +
+      `🧾 Средний чек: ${avgCheck.toLocaleString('ru-RU')} ₽\n` +
+      `✅ Выполнено заказов: ${completedOrders}\n` +
+      `❌ Отменённых заказов: ${cancelledOrders}\n\n` +
+      `📦 *Продажи:*\n${itemsList || 'Нет продаж'}`;
+
+    await bot.telegram.sendMessage(ADMIN_ID, report, { parse_mode: 'Markdown' });
+    console.log('📧 Отчёт отправлен админу');
+  } catch (err) {    console.error('Ошибка закрытия смены:', err.message);
+  }
+}
+
+// Проверяем время каждую минуту
+setInterval(async () => {
+  try {
+    const moscowTime = await getMoscowTime();
+    const hours = moscowTime.getHours();
+    const minutes = moscowTime.getMinutes();
+
+    // Открытие в 11:00
+    if (hours === 11 && minutes === 0) {
+      await openShift();
+    }
+    // Закрытие в 23:00
+    if (hours === 23 && minutes === 0) {
+      await closeShift();
+    }
+  } catch (err) {
+    console.error('Shift timer error:', err.message);
+  }
+}, 60000);
+
+// При старте проверяем текущее время
+async function checkShiftOnStartup() {
+  try {
+    const moscowTime = await getMoscowTime();
+    const hours = moscowTime.getHours();
+    const active = await getActiveShift();
+
+    if (!active && hours >= 11 && hours < 23) {
+      console.log('🟢 Смена открыта при старте (время работы)');
+      await openShift();
+    } else if (active && (hours >= 23 || hours < 11)) {
+      console.log('🔴 Смена закрыта при старте (вне времени работы)');
+      await closeShift();
+    }
+  } catch (err) {
+    console.error('Startup shift check error:', err.message);
+  }
+}
 
 // === МЕНЮ ===
 app.get('/api/menu', requireDB, async (req, res) => {
@@ -105,8 +243,7 @@ app.get('/api/menu', requireDB, async (req, res) => {
     const result = await pool.query(
       'SELECT id, name, description, price, category, image_url FROM menu_items WHERE is_active = true ORDER BY id'
     );
-    res.json(result.rows);
-  } catch (err) {
+    res.json(result.rows);  } catch (err) {
     console.error('❌ /api/menu error:', err.message);
     res.status(500).json({ error: err.message });
   }
@@ -145,6 +282,7 @@ app.post('/api/payment/create', async (req, res) => {
 bot.on('pre_checkout_query', async (ctx) => {
   await ctx.answerPreCheckoutQuery(true);
 });
+
 // === УСПЕШНАЯ ОПЛАТА ===
 bot.on('successful_payment', async (ctx) => {
   try {
@@ -154,8 +292,7 @@ bot.on('successful_payment', async (ctx) => {
     await bot.telegram.sendMessage(
       ADMIN_ID,
       `💰 *Оплата получена!*\n📦 Заказ #${orderId}\n💵 ${ctx.message.successful_payment.total_amount / 100} ₽`,
-      { parse_mode: 'Markdown' }
-    );
+      { parse_mode: 'Markdown' }    );
     console.log(`✅ Заказ #${orderId} оплачен!`);
   } catch (err) {
     console.error('Payment success error:', err);
@@ -194,7 +331,8 @@ app.post('/api/admin/order/:id/status', async (req, res) => {
       await bot.telegram.sendMessage(
         order.user_id,
         `📦 **Заказ #${order.id}**\nСтатус: **${getStatusText(status)}**\n${getOrderDetails(order)}`,
-        { parse_mode: 'Markdown' }      );
+        { parse_mode: 'Markdown' }
+      );
     } catch (e) { console.error('Notify error:', e.message); }
     res.json({ success: true });
   } catch (err) {
@@ -203,8 +341,7 @@ app.post('/api/admin/order/:id/status', async (req, res) => {
   }
 });
 
-// === АДМИНКА: МЕНЮ ===
-app.get('/api/admin/menu', requireDB, async (req, res) => {
+// === АДМИНКА: МЕНЮ ===app.get('/api/admin/menu', requireDB, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM menu_items ORDER BY id DESC');
     res.json(result.rows);
@@ -243,7 +380,8 @@ app.delete('/api/admin/menu/:id', requireDB, async (req, res) => {
 // === АДМИНКА: МЕТРИКИ ===
 app.get('/api/admin/metrics', requireDB, async (req, res) => {
   try {
-    const revenue = await pool.query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status != 'cancelled'");    const orders = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status != 'cancelled'");
+    const revenue = await pool.query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status != 'cancelled'");
+    const orders = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status != 'cancelled'");
     const totalOrders = parseInt(orders.rows[0].count);
     const totalRevenue = parseFloat(revenue.rows[0].total);
     const avgCheck = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
@@ -252,8 +390,7 @@ app.get('/api/admin/metrics', requireDB, async (req, res) => {
       const allOrders = await pool.query("SELECT items FROM orders WHERE status != 'cancelled' AND items IS NOT NULL");
       const counts = {};
       for (const row of allOrders.rows) {
-        try {
-          const items = typeof row.items === 'string' ? JSON.parse(row.items) : row.items;
+        try {          const items = typeof row.items === 'string' ? JSON.parse(row.items) : row.items;
           if (Array.isArray(items)) {
             for (const item of items) counts[item.name] = (counts[item.name] || 0) + (item.qty || 1);
           }
@@ -291,6 +428,17 @@ app.get('/api/user/:userId/orders', async (req, res) => {
 // === СТРАНИЦА АДМИНКИ ===
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// === РУЧНОЕ УПРАВЛЕНИЕ СМЕНАМИ (для админа) ===
+app.post('/api/admin/shift/open', async (req, res) => {
+  await openShift();
+  res.json({ success: true });
+});
+
+app.post('/api/admin/shift/close', async (req, res) => {
+  await closeShift();
+  res.json({ success: true });
 });
 // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 function getStatusText(status) {
@@ -336,9 +484,11 @@ bot.catch(err => console.error('Bot error:', err));
 
 // === ЗАПУСК ===
 bot.launch();
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server запущен на порту ${PORT}`);
   console.log(`🌐 URL: ${WEBAPP_URL}`);
-});
+  // Проверяем смену при старте
+  await checkShiftOnStartup();});
 
-process.on('SIGINT', () => { bot.stop('SIGINT'); process.exit(); });process.on('SIGTERM', () => { bot.stop('SIGTERM'); process.exit(); });
+process.on('SIGINT', () => { bot.stop('SIGINT'); process.exit(); });
+process.on('SIGTERM', () => { bot.stop('SIGTERM'); process.exit(); });
