@@ -25,7 +25,7 @@ async function initDB() {
     console.log('✅ PostgreSQL подключён!');
     client.release();
 
-    // 🔥 СОЗДАЁМ ТАБЛИЦЫ С ПРАВИЛЬНЫМИ ТИПАМИ (BIGINT!)
+    // 🔥 ТАБЛИЦЫ С BIGINT
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -57,11 +57,12 @@ async function initDB() {
         price DECIMAL(10,2) NOT NULL,
         category TEXT,
         image_url TEXT,
-        is_active BOOLEAN DEFAULT true
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Добавляем тестовые товары если пусто
+    // Добавляем товары если пусто
     const { rows } = await pool.query('SELECT COUNT(*) FROM menu_items');
     if (rows[0].count === '0') {
       await pool.query(`
@@ -91,19 +92,18 @@ const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// === 🍔 МЕНЮ ===
+// === 🍔 МЕНЮ (ПУБЛИЧНОЕ) ===
 app.get('/api/menu', async (req, res) => {
   try {
     const result = await pool.query('SELECT id, name, description, price, category, image_url FROM menu_items WHERE is_active = true ORDER BY id');
-    res.json(result.rows);
-  } catch { res.status(500).json([]); }});
+    res.json(result.rows);  } catch { res.status(500).json([]); }
+});
 
-// === 💳 ОПЛАТА (ИСПРАВЛЕННАЯ) ===
+// === 💳 ОПЛАТА ===
 app.post('/api/payment/create', async (req, res) => {
   const { userId, items, total, address, comment } = req.body;
   
   try {
-    // 🔥 userId передаём как число (BigInt)
     const orderRes = await pool.query(
       `INSERT INTO orders (user_id, total_amount, status, address, comment, items)
        VALUES ($1, $2, 'pending_payment', $3, $4, $5) RETURNING id`,
@@ -111,7 +111,6 @@ app.post('/api/payment/create', async (req, res) => {
     );
     const orderId = orderRes.rows[0].id;
 
-    // Создаём ссылку на оплату
     const invoiceLink = await bot.telegram.createInvoiceLink({
       title: `Заказ #${orderId}`,
       description: items.map(i => `${i.name} x${i.qty}`).join(', '),
@@ -145,8 +144,8 @@ bot.on('pre_checkout_query', async (ctx) => {
 bot.on('successful_payment', async (ctx) => {
   try {
     const payload = JSON.parse(ctx.message.successful_payment.invoice_payload);
-    const orderId = payload.orderId;    
-    await pool.query('UPDATE orders SET status = $1 WHERE id = $2', ['paid', orderId]);
+    const orderId = payload.orderId;
+        await pool.query('UPDATE orders SET status = $1 WHERE id = $2', ['paid', orderId]);
     
     await bot.telegram.sendMessage(ADMIN_ID, 
       `💰 **Оплата получена!**\n\n📦 Заказ #${orderId}\n💵 ${ctx.message.successful_payment.total_amount / 100} ₽`
@@ -158,7 +157,7 @@ bot.on('successful_payment', async (ctx) => {
   }
 });
 
-// === 📦 АДМИНКА ===
+// === 📦 АДМИНКА: ЗАКАЗЫ ===
 app.get('/api/admin/orders', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 50');
@@ -166,7 +165,71 @@ app.get('/api/admin/orders', async (req, res) => {
   } catch { res.status(500).json({ error: 'Ошибка' }); }
 });
 
+app.post('/api/admin/order/:id/status', async (req, res) => {
+  const { status } = req.body;
+  try {
+    await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'Ошибка' }); }
+});
+
+// === 🍔 АДМИНКА: МЕНЮ (CRUD) ===
+app.get('/api/admin/menu', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM menu_items ORDER BY id DESC');
+    res.json(result.rows);
+  } catch { res.status(500).json({ error: 'Ошибка' }); }
+});
+
+app.post('/api/admin/menu', async (req, res) => {
+  const { name, description, price, category, image_url } = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO menu_items (name, description, price, category, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [name, description, price, category, image_url || '']
+    );
+    res.json(result.rows[0]);
+  } catch { res.status(500).json({ error: 'Ошибка создания' }); }
+});
+
+app.put('/api/admin/menu/:id', async (req, res) => {
+  const { name, description, price, category, image_url } = req.body;
+  try {    const result = await pool.query(
+      'UPDATE menu_items SET name=$1, description=$2, price=$3, category=$4, image_url=$5 WHERE id=$6 RETURNING *',
+      [name, description, price, category, image_url, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch { res.status(500).json({ error: 'Ошибка обновления' }); }
+});
+
+app.delete('/api/admin/menu/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM menu_items WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'Ошибка удаления' }); }
+});
+
+// === 📊 АДМИНКА: МЕТРИКИ ===
+app.get('/api/admin/metrics', async (req, res) => {
+  try {
+    const revenue = await pool.query('SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status != $1', ['cancelled']);
+    const orders = await pool.query('SELECT COUNT(*) as count FROM orders WHERE status != $1', ['cancelled']);
+    res.json({
+      revenue: parseFloat(revenue.rows[0].total),
+      totalOrders: parseInt(orders.rows[0].count)
+    });
+  } catch { res.status(500).json({ error: 'Ошибка' }); }
+});
+
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+
+// === 👤 ПОЛЬЗОВАТЕЛЬ ===
+app.get('/api/user/:userId/balance', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT bonus_balance FROM users WHERE telegram_id = $1', [req.params.userId]);
+    res.json({ balance: result.rows[0]?.bonus_balance || 0 });
+  } catch { res.status(500).json({ balance: 0 }); }
+});
 
 // === 🤖 БОТ ===
 bot.start(async (ctx) => {
@@ -180,8 +243,7 @@ bot.start(async (ctx) => {
     if (ctx.from.id === ADMIN_ID) {
       kb.inline_keyboard.push([{ text: '🔧 Админка', web_app: { url: `${WEBAPP_URL}/admin` } }]);
     }
-    
-    await ctx.reply('🍽️ Добро пожаловать!', { reply_markup: kb });
+        await ctx.reply('🍽️ Добро пожаловать!', { reply_markup: kb });
   } catch (err) { console.error(err); }
 });
 
@@ -194,4 +256,5 @@ app.listen(PORT, () => {
   console.log(`🌐 URL: ${WEBAPP_URL}`);
 });
 
-process.on('SIGINT', () => { bot.stop('SIGINT'); process.exit(); });process.on('SIGTERM', () => { bot.stop('SIGTERM'); process.exit(); });
+process.on('SIGINT', () => { bot.stop('SIGINT'); process.exit(); });
+process.on('SIGTERM', () => { bot.stop('SIGTERM'); process.exit(); });
