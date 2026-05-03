@@ -63,7 +63,18 @@ document.querySelectorAll('.nav-item').forEach(btn => {
     if (btn.dataset.target === 'page-cart') renderCart();
   });
 });
-
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const targetPage = document.getElementById(btn.dataset.target);
+    if (targetPage) targetPage.classList.add('active');
+    
+    if (btn.dataset.target === 'page-cart') renderCart();
+    if (btn.dataset.target === 'page-orders') loadUserOrders(); // ← Добавь эту строку
+  });
+});
 // ── КАТЕГОРИИ ──
 document.querySelectorAll('.cat-btn').forEach(btn => {
   btn.addEventListener('click', () => {
