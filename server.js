@@ -63,15 +63,27 @@ async function initDB() {
     `);
 
     const { rows } = await pool.query('SELECT COUNT(*) FROM menu_items');
-    if (rows[0].count === '0') {
+    console.log(`📊 Товаров в БД: ${rows[0].count}`);
+
+    if (parseInt(rows[0].count) === 0) {
       await pool.query(`
-        INSERT INTO menu_items (name, description, price, category, image_url) VALUES
-        ('Чизбургер Классик', 'Сочная говядина, сыр чеддер', 350, 'burger', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400'),
-        ('Пицца Маргарита', 'Томаты, моцарелла, базилик', 600, 'pizza', 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'),
-        ('Кола 0.5л', 'Освежающий напиток', 150, 'drink', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400'),
-        ('Картофель фри', 'Хрустящий, с солью', 200, 'fry', 'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=400')
+        INSERT INTO menu_items (name, description, price, category, image_url, is_active) VALUES
+        ('Чизбургер Классик', 'Сочная говядина, сыр чеддер', 350, 'burger', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400', true),
+        ('Пицца Маргарита', 'Томаты, моцарелла, базилик', 600, 'pizza', 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400', true),
+        ('Кола 0.5л', 'Освежающий напиток', 150, 'drink', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400', true),
+        ('Картофель фри', 'Хрустящий, с солью', 200, 'fry', 'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=400', true)
       `);
-      console.log('✅ Добавлено 4 товара');
+      console.log('✅ Добавлено 4 тестовых товара');
+    } else {
+      // Проверяем сколько активных товаров
+      const active = await pool.query('SELECT COUNT(*) FROM menu_items WHERE is_active = true');
+      console.log(`✅ Активных товаров: ${active.rows[0].count}`);
+
+      // Если все товары неактивны — активируем
+      if (parseInt(active.rows[0].count) === 0) {
+        await pool.query('UPDATE menu_items SET is_active = true');
+        console.log('🔧 Все товары активированы');
+      }
     }
 
     console.log('✅ Таблицы готовы');
@@ -98,14 +110,30 @@ const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// === МЕНЮ (ПУБЛИЧНОЕ) ===
+// === ВРЕМЕННЫЙ РОУТ: активировать все товары ===
+app.get('/api/fix-menu', requireDB, async (req, res) => {
+  try {
+    await pool.query("UPDATE menu_items SET is_active = true");
+    const result = await pool.query("SELECT id, name, is_active FROM menu_items");
+    console.log('🔧 Все товары активированы');
+    res.json({ fixed: true, items: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 app.get('/api/menu', requireDB, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, name, description, price, category, image_url FROM menu_items WHERE is_active = true ORDER BY id'
     );
+    console.log(`📋 /api/menu → ${result.rows.length} позиций`);
     res.json(result.rows);
-  } catch { res.status(500).json([]); }
+  } catch (err) {
+    console.error('❌ /api/menu error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // === ОПЛАТА ===
