@@ -4,138 +4,733 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>FoodHub</title>
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: rgba(255,255,255,0.06);
+      --surface2: rgba(255,255,255,0.10);
+      --border: rgba(255,255,255,0.10);
+      --border2: rgba(255,255,255,0.18);
+      --text: #ffffff;
+      --text2: rgba(255,255,255,0.55);
+      --text3: rgba(255,255,255,0.30);
+      --accent: #FF6B35;
+      --accent2: #FF8C42;
+      --blue: #5B8DEF;
+      --green: #34C759;
+      --red: #FF453A;
+      --gold: #FFD60A;
+      --grad1: linear-gradient(135deg, #FF6B35, #FF8C42, #FFB347);
+      --grad2: linear-gradient(135deg, #5B8DEF, #8B5CF6);
+      --grad3: linear-gradient(135deg, #34C759, #30D158);
+      --card-bg: rgba(255,255,255,0.07);
+      --card-border: rgba(255,255,255,0.12);
+      --blur: blur(24px);
+      --nav-h: 88px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: var(--nav-h);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(255,107,53,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(91,141,239,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 50% 50%, rgba(139,92,246,0.06) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    body.loading .page, body.loading .bottom-nav { opacity: 0; pointer-events: none; }
+
+    /* ═══ SPLASH ═══ */
+    #splash-screen {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+      flex-direction: column; gap: 0;
+    }
+    .splash-inner { text-align: center; position: relative; }
+    .splash-rings {
+      position: relative; width: 140px; height: 140px;
+      margin: 0 auto 32px;
+    }
+    .splash-ring {
+      position: absolute; border-radius: 50%;
+      border: 1.5px solid transparent; inset: 0;
+    }
+    .splash-ring:nth-child(1) {
+      inset: 0;
+      border-color: rgba(255,107,53,0.5);
+      animation: ringSpin 3s linear infinite;
+    }
+    .splash-ring:nth-child(2) {
+      inset: 16px;
+      border-color: rgba(91,141,239,0.4);
+      animation: ringSpin 2s linear infinite reverse;
+    }
+    .splash-ring:nth-child(3) {
+      inset: 32px;
+      border-color: rgba(255,177,71,0.5);
+      animation: ringSpin 4s linear infinite;
+    }
+    .splash-logo-inner {
+      position: absolute; inset: 44px;
+      background: var(--grad1);
+      border-radius: 28px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 32px rgba(255,107,53,0.4);
+    }
+    @keyframes ringSpin { to { transform: rotate(360deg); } }
+
+    .splash-title {
+      font-size: 38px; font-weight: 800;
+      background: var(--grad1);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: -1px; margin-bottom: 8px;
+    }
+    .splash-sub {
+      font-size: 14px; color: var(--text2); letter-spacing: 0.5px;
+      margin-bottom: 48px;
+    }
+    .splash-bar {
+      width: 160px; height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px; overflow: hidden;
+      margin: 0 auto;
+    }
+    .splash-bar-fill {
+      height: 100%; width: 0%;
+      background: var(--grad1);
+      border-radius: 3px;
+      animation: barFill 1.8s ease forwards;
+    }
+    @keyframes barFill { to { width: 100%; } }
+    #splash-screen.hiding { animation: splashOut 0.6s ease forwards; }
+    @keyframes splashOut { to { opacity: 0; transform: scale(1.04); } }
+
+    /* ═══ PAGES ═══ */
+    .page { display: none; min-height: 100vh; position: relative; z-index: 1; animation: pageIn 0.4s ease; }
+    .page.active { display: block; }
+    @keyframes pageIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+    /* ═══ HEADER ═══ */
+    .top-header {
+      padding: 20px 20px 16px;
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(10,10,15,0.8);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-row { display: flex; align-items: center; justify-content: space-between; }
+    .header-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+    .header-badge {
+      background: var(--grad1);
+      color: white; font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ═══ HERO BANNER ═══ */
+    .hero-banner {
+      margin: 16px; border-radius: 24px;
+      background: linear-gradient(135deg, #1a0a00, #2d1100, #1a0a00);
+      border: 1px solid rgba(255,107,53,0.2);
+      padding: 24px;
+      position: relative; overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute; top: -40%; right: -10%;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(255,107,53,0.25) 0%, transparent 70%);
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,107,53,0.15);
+      border: 1px solid rgba(255,107,53,0.3);
+      color: var(--accent2); font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+      letter-spacing: 0.5px; margin-bottom: 12px;
+    }
+    .hero-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.3px; }
+    .hero-sub { font-size: 13px; color: var(--text2); margin-bottom: 18px; }
+    .hero-stats { display: flex; gap: 20px; }
+    .hero-stat { display: flex; flex-direction: column; gap: 2px; }
+    .hero-stat-val { font-size: 18px; font-weight: 800; background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-stat-label { font-size: 11px; color: var(--text3); }
+
+    /* ═══ MARQUEE ═══ */
+    .marquee-wrap {
+      overflow: hidden; margin: 0 0 8px;
+      padding: 10px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .marquee-track {
+      display: inline-flex; gap: 32px;
+      white-space: nowrap;
+      animation: marquee 18s linear infinite;
+    }
+    .marquee-item {
+      font-size: 12px; font-weight: 700;
+      color: var(--text3); letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .marquee-dot { color: var(--accent); }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+
+    /* ═══ SEARCH ═══ */
+    .search-wrap { padding: 12px 16px; }
+    .search-inner {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 12px 16px;
+      backdrop-filter: var(--blur);
+    }
+    .search-inner svg { flex-shrink: 0; opacity: 0.4; }
+    .search-inner input {
+      flex: 1; background: none; border: none; outline: none;
+      font-size: 15px; color: var(--text);
+      font-family: inherit;
+    }
+    .search-inner input::placeholder { color: var(--text3); }
+
+    /* ═══ CATEGORIES ═══ */
+    .cats-wrap {
+      display: flex; gap: 8px;
+      padding: 4px 16px 16px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .cats-wrap::-webkit-scrollbar { display: none; }
+    .cat-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text2); font-size: 13px; font-weight: 600;
+      white-space: nowrap; cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .cat-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; flex-shrink: 0; }
+    .cat-btn.active {
+      background: var(--grad1);
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 4px 16px rgba(255,107,53,0.35);
+    }
+
+    /* ═══ SECTION TITLE ═══ */
+    .section-title {
+      padding: 8px 16px 12px;
+      font-size: 20px; font-weight: 800; letter-spacing: -0.3px;
+    }
+
+    /* ═══ MENU GRID ═══ */
+    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px 24px; }
+
+    .menu-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px; overflow: hidden;
+      display: flex; flex-direction: column;
+      backdrop-filter: var(--blur);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+    .menu-card:active { transform: scale(0.97); }
+    .menu-card-img {
+      width: 100%; height: 120px; position: relative; overflow: hidden;
+    }
+    .menu-card-img img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .menu-card:active .menu-card-img img { transform: scale(1.05); }
+    .menu-card-img::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.6) 100%);
+    }
+    .menu-card-body { padding: 12px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .menu-card-name { font-size: 14px; font-weight: 700; line-height: 1.25; }
+    .menu-card-desc { font-size: 11px; color: var(--text2); line-height: 1.4; flex: 1; }
+    .menu-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+    .menu-card-price {
+      font-size: 16px; font-weight: 800;
+      background: var(--grad1);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .add-btn {
+      width: 32px; height: 32px; border-radius: 10px;
+      border: none; cursor: pointer;
+      background: var(--grad1);
+      color: white; font-size: 20px; font-weight: 300;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(255,107,53,0.35);
+      transition: transform 0.15s ease;
+      line-height: 1;
+    }
+    .add-btn:active { transform: scale(0.88); }
+
+    /* ═══ CART ═══ */
+    .page-pad { padding: 16px; }
+
+    .cart-item {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 18px; padding: 14px;
+      margin-bottom: 10px;
+      backdrop-filter: var(--blur);
+      animation: itemIn 0.3s ease;
+    }
+    @keyframes itemIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+    .cart-item-info { flex: 1; }
+    .cart-item-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+    .cart-item-price { font-size: 13px; background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; }
+    .cart-controls {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 6px 10px;
+    }
+    .qty-btn {
+      width: 22px; height: 22px; border: none; background: none;
+      color: var(--text); font-size: 18px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; transition: background 0.15s;
+    }
+    .qty-btn:active { background: var(--surface2); }
+    .qty-val { font-size: 15px; font-weight: 700; min-width: 18px; text-align: center; }
+
+    .checkout-card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 24px; padding: 20px;
+      margin-top: 16px; backdrop-filter: var(--blur);
+    }
+    .total-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 18px;
+    }
+    .total-label { font-size: 16px; font-weight: 600; color: var(--text2); }
+    .total-val {
+      font-size: 24px; font-weight: 800;
+      background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .inp {
+      width: 100%; padding: 14px 16px; margin-bottom: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; color: var(--text);
+      font-size: 15px; font-family: inherit; outline: none;
+      transition: border-color 0.2s;
+    }
+    .inp:focus { border-color: var(--accent); }
+    .inp::placeholder { color: var(--text3); }
+    textarea.inp { resize: none; height: 80px; }
+
+    .pay-btn {
+      width: 100%; padding: 17px;
+      background: var(--grad1);
+      border: none; border-radius: 16px;
+      color: white; font-size: 16px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 8px 24px rgba(255,107,53,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 4px;
+    }
+    .pay-btn:active { transform: scale(0.98); box-shadow: 0 4px 12px rgba(255,107,53,0.25); }
+    .pay-btn:disabled { opacity: 0.5; }
+    .pay-btn svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    /* ═══ PROFILE ═══ */
+    .profile-hero {
+      margin: 16px; padding: 24px;
+      background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(91,141,239,0.15));
+      border: 1px solid var(--border2);
+      border-radius: 24px; backdrop-filter: var(--blur);
+      position: relative; overflow: hidden;
+    }
+    .profile-hero::before {
+      content: '';
+      position: absolute; top: -50%; right: -20%;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(255,107,53,0.2) 0%, transparent 70%);
+    }
+    .profile-top { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .profile-avatar {
+      width: 60px; height: 60px; border-radius: 20px;
+      background: var(--grad1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 700; color: white;
+      box-shadow: 0 8px 20px rgba(255,107,53,0.35);
+      flex-shrink: 0;
+    }
+    .profile-name { font-size: 20px; font-weight: 800; margin-bottom: 3px; }
+    .profile-id { font-size: 12px; color: var(--text3); }
+    .profile-stats { display: flex; gap: 0; }
+    .profile-stat {
+      flex: 1; text-align: center; padding: 12px 0;
+      border-right: 1px solid var(--border);
+    }
+    .profile-stat:last-child { border-right: none; }
+    .profile-stat-val { font-size: 20px; font-weight: 800; background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .profile-stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+    .loyalty-card {
+      margin: 0 16px 16px;
+      background: linear-gradient(135deg, #0d1117, #1a1f2e, #0d1117);
+      border: 1px solid rgba(91,141,239,0.25);
+      border-radius: 24px; padding: 24px;
+      position: relative; overflow: hidden;
+    }
+    .loyalty-card::before {
+      content: '';
+      position: absolute; top: -30%; right: -10%;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, rgba(91,141,239,0.2) 0%, transparent 70%);
+    }
+    .loyalty-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .loyalty-brand { font-size: 15px; font-weight: 700; }
+    .loyalty-status {
+      background: rgba(52,199,89,0.15); border: 1px solid rgba(52,199,89,0.3);
+      color: var(--green); font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+    }
+    .loyalty-number {
+      font-size: 18px; letter-spacing: 3px; color: var(--text2);
+      font-weight: 600; margin-bottom: 20px; font-family: 'SF Mono', monospace;
+    }
+    .loyalty-qr { display: flex; justify-content: center; margin-bottom: 20px; }
+    .loyalty-qr > div { background: white; padding: 8px; border-radius: 12px; }
+    .loyalty-bottom { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); }
+
+    .ref-card {
+      margin: 0 16px 16px;
+      background: linear-gradient(135deg, rgba(52,199,89,0.1), rgba(52,199,89,0.05));
+      border: 1px solid rgba(52,199,89,0.2);
+      border-radius: 20px; padding: 20px;
+    }
+    .ref-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .ref-sub { font-size: 13px; color: var(--text2); margin-bottom: 14px; }
+    .ref-row {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 14px;
+    }
+    .ref-link { flex: 1; font-size: 12px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .copy-btn {
+      background: var(--grad3); color: white; border: none;
+      padding: 6px 14px; border-radius: 8px;
+      font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+      font-family: inherit;
+    }
+
+    /* ═══ ORDERS PAGE ═══ */
+    .orders-empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 80px 32px; gap: 16px; text-align: center;
+    }
+    .orders-empty-icon {
+      width: 80px; height: 80px; border-radius: 24px;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .orders-empty-icon svg { width: 36px; height: 36px; stroke: var(--text3); fill: none; stroke-width: 1.5; stroke-linecap: round; }
+    .orders-empty h3 { font-size: 18px; font-weight: 700; }
+    .orders-empty p { font-size: 14px; color: var(--text2); }
+
+    /* ═══ EMPTY / LOADING ═══ */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 32px; gap: 12px; text-align: center;
+      color: var(--text2); font-size: 14px;
+    }
+    .hidden { display: none !important; }
+
+    /* ═══ NAV ═══ */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      display: flex; align-items: flex-start; justify-content: space-around;
+      padding: 12px 8px 0;
+      background: rgba(10,10,15,0.9);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-top: 1px solid var(--border);
+      z-index: 100;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: none; border: none; cursor: pointer; color: var(--text3);
+      font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+      position: relative; padding: 0; transition: color 0.2s;
+      font-family: inherit;
+    }
+    .nav-item.active { color: var(--accent); }
+    .nav-icon-wrap {
+      width: 44px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 12px; position: relative;
+      transition: background 0.2s;
+    }
+    .nav-item.active .nav-icon-wrap {
+      background: rgba(255,107,53,0.12);
+    }
+    .nav-item svg {
+      width: 22px; height: 22px; stroke: currentColor; fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .nav-item.active svg { stroke-width: 2.2; }
+    .badge {
+      position: absolute; top: -4px; right: -4px;
+      min-width: 17px; height: 17px; border-radius: 9px;
+      background: var(--grad1); color: white;
+      font-size: 9px; font-weight: 800;
+      display: none; align-items: center; justify-content: center;
+      padding: 0 4px; border: 2px solid var(--bg);
+    }
+  </style>
 </head>
 <body class="loading">
 
-  <!-- 🎬 ЗАСТАВКА -->
+  <!-- SPLASH -->
   <div id="splash-screen">
-    <div class="flying-emojis" id="flying-emojis"></div>
-    <div class="splash-content">
-      <div class="logo-container">
-        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Лого" class="splash-logo">
-        <div class="logo-ring"></div>
+    <div class="splash-inner">
+      <div class="splash-rings">
+        <div class="splash-ring"></div>
+        <div class="splash-ring"></div>
+        <div class="splash-ring"></div>
+        <div class="splash-logo-inner">🍔</div>
       </div>
-      <h1 class="splash-title">
-        <span class="letter" style="animation-delay: 0.1s">Е</span>
-        <span class="letter" style="animation-delay: 0.2s">д</span>
-        <span class="letter" style="animation-delay: 0.3s">а</span>
-        <span class="letter" style="animation-delay: 0.4s">Т</span>
-        <span class="letter" style="animation-delay: 0.5s">у</span>
-        <span class="letter" style="animation-delay: 0.6s">т</span>
-      </h1>
-      <div class="tagline">Быстро. Вкусно. Удобно.</div>
-      <div class="loader-wrapper">
-        <div class="loader"></div>
-      </div>
+      <div class="splash-title">FoodHub</div>
+      <div class="splash-sub">Быстро · Вкусно · Удобно</div>
+      <div class="splash-bar"><div class="splash-bar-fill"></div></div>
     </div>
   </div>
 
-  <!-- 🏠 ГЛАВНАЯ (МЕНЮ) -->
+  <!-- ГЛАВНАЯ -->
   <div id="page-home" class="page active">
-    <header class="top-header"><h1>Меню</h1></header>
-    <div class="marquee-container">
-      <div class="marquee-track">
-        <span>🔥 СКИДКИ 50%</span> • <span>🚀 ДОСТАВКА 15 МИН</span> • <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span> •
-        <span>🔥 СКИДКИ 50%</span> • <span>🚀 ДОСТАВКА 15 МИН</span> • <span>🍔 ЛУЧШИЕ БУРГЕРЫ</span> •
+    <div class="top-header">
+      <div class="header-row">
+        <div class="header-title">Меню</div>
+        <div class="header-badge">LIVE</div>
       </div>
     </div>
-    <div class="search-bar">
-      <input type="text" id="search-input" placeholder="🔍 Найти блюдо...">
+
+    <div class="hero-banner">
+      <div class="hero-tag">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Быстрая доставка
+      </div>
+      <div class="hero-title">Свежая еда за 15 минут</div>
+      <div class="hero-sub">Горячая доставка прямо к вашей двери</div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-val">15</div>
+          <div class="hero-stat-label">мин доставка</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">4.9</div>
+          <div class="hero-stat-label">рейтинг</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">500+</div>
+          <div class="hero-stat-label">заказов</div>
+        </div>
+      </div>
     </div>
-    <div class="categories-container">
-      <button class="cat-btn active" data-cat="all">🔥 Все</button>
-      <button class="cat-btn" data-cat="burger">🍔 Бургеры</button>      <button class="cat-btn" data-cat="pizza">🍕 Пицца</button>
-      <button class="cat-btn" data-cat="drink">🥤 Напитки</button>
-      <button class="cat-btn" data-cat="fry">🍟 Фритюр</button>
+
+    <div class="marquee-wrap">
+      <div class="marquee-track">
+        <span class="marquee-item">СКИДКИ 50%</span><span class="marquee-dot">✦</span>
+        <span class="marquee-item">ДОСТАВКА 15 МИН</span><span class="marquee-dot">✦</span>
+        <span class="marquee-item">СВЕЖИЕ ИНГРЕДИЕНТЫ</span><span class="marquee-dot">✦</span>
+        <span class="marquee-item">ЛУЧШИЕ БУРГЕРЫ</span><span class="marquee-dot">✦</span>
+        <span class="marquee-item">СКИДКИ 50%</span><span class="marquee-dot">✦</span>
+        <span class="marquee-item">ДОСТАВКА 15 МИН</span><span class="marquee-dot">✦</span>
+        <span class="marquee-item">СВЕЖИЕ ИНГРЕДИЕНТЫ</span><span class="marquee-dot">✦</span>
+        <span class="marquee-item">ЛУЧШИЕ БУРГЕРЫ</span><span class="marquee-dot">✦</span>
+      </div>
     </div>
+
+    <div class="search-wrap">
+      <div class="search-inner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="Найти блюдо...">
+      </div>
+    </div>
+
+    <div class="cats-wrap">
+      <button class="cat-btn active" data-cat="all">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Все
+      </button>
+      <button class="cat-btn" data-cat="burger">
+        <svg viewBox="0 0 24 24"><path d="M4 12h16M4 8h16M4 16h16"/><circle cx="4" cy="8" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="16" r="1" fill="currentColor"/></svg>
+        Бургеры
+      </button>
+      <button class="cat-btn" data-cat="pizza">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2v10l6 6"/></svg>
+        Пицца
+      </button>
+      <button class="cat-btn" data-cat="drink">
+        <svg viewBox="0 0 24 24"><path d="M8 2h8l1 7H7L8 2z"/><path d="M7 9c0 7 2 11 5 11s5-4 5-11"/></svg>
+        Напитки
+      </button>
+      <button class="cat-btn" data-cat="fry">
+        <svg viewBox="0 0 24 24"><path d="M12 2v6M8 4l4 4 4-4"/><rect x="4" y="10" width="16" height="4" rx="2"/><path d="M6 14l2 8h8l2-8"/></svg>
+        Фритюр
+      </button>
+    </div>
+
+    <div class="section-title">Популярное</div>
     <main id="menu-grid" class="menu-grid"></main>
   </div>
 
-  <!-- 🛒 КОРЗИНА -->
-  <div id="page-cart" class="page">
-    <header class="top-header"><h1>Корзина</h1></header>
-    <div class="page-content">
-      <div id="cart-items-list"></div>
-      <div id="cart-empty-msg" class="empty-state hidden">🛒 Корзина пуста</div>
-      
-      <div id="cart-checkout-block" class="checkout-block hidden">
-        <div class="summary-row">
-          <span>Итого:</span>
-          <span id="cart-total-display" class="total-price">0 ₽</span>
-        </div>
-        <input type="text" id="address" class="input-field" placeholder="📍 Адрес доставки">
-        <textarea id="comment" class="input-field" placeholder="💬 Комментарий курьеру"></textarea>
-        <button id="submit-order-btn" class="btn-primary">💳 Оплатить заказ</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 📦 ЗАКАЗЫ -->
+  <!-- ЗАКАЗЫ -->
   <div id="page-orders" class="page">
-  <header class="top-header"><h1>Мои заказы</h1></header>
-  <div class="page-content">
-    <div id="orders-list"></div>
+    <div class="top-header">
+      <div class="header-row">
+        <div class="header-title">Заказы</div>
+      </div>
+    </div>
+    <div class="orders-empty">
+      <div class="orders-empty-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      </div>
+      <h3>Заказов пока нет</h3>
+      <p>Ваши заказы появятся здесь после оформления</p>
+    </div>
   </div>
-</div>
 
-  <!-- 👤 ПРОФИЛЬ -->
-  <div id="page-profile" class="page">
-    <header class="top-header"><h1>Профиль</h1></header>
-    <div class="page-content">
-      <div class="profile-card">
-        <div class="profile-header">
-          <div class="avatar">👤</div>
-          <div class="user-info">
-            <h3 id="profile-name">Загрузка...</h3>
-            <span id="profile-id" class="user-id">ID: ...</span>
-          </div>
-        </div>
-        <div class="stats-row">
-          <div class="stat-item">
-            <span class="stat-val" id="bonus-points">0 ₽</span>
-            <span class="stat-label">Бонусы</span>          </div>
-          <div class="stat-item">
-            <span class="stat-val">0</span>
-            <span class="stat-label">Заказы</span>
-          </div>
-        </div>
+  <!-- КОРЗИНА -->
+  <div id="page-cart" class="page">
+    <div class="top-header">
+      <div class="header-row">
+        <div class="header-title">Корзина</div>
       </div>
-
-      <div class="loyalty-card">
-        <div class="card-top">
-          <span>🍔 ЕдаТут Card</span>
-          <span class="status">Active</span>
-        </div>
-        <div class="card-number" id="card-number">**** **** **** 0000</div>
-        <div class="qr-wrapper">
-          <div id="qrcode"></div>
-        </div>
-        <div class="card-bottom">
-          <span>5% кэшбэк</span>
-          <span>Накопительная</span>
-        </div>
+    </div>
+    <div class="page-pad">
+      <div id="cart-items-list"></div>
+      <div id="cart-empty-msg" class="empty-state hidden">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Корзина пуста
       </div>
-
-      <div class="referral-box">
-        <h4>🎁 Пригласи друга</h4>
-        <p>100₽ за каждого друга!</p>
-        <div class="ref-link-row">
-          <span id="ref-link">https://t.me/...</span>
-          <button class="btn-copy" onclick="copyRefLink()">Копировать</button>
+      <div id="cart-checkout-block" class="hidden">
+        <div class="checkout-card">
+          <div class="total-row">
+            <span class="total-label">Итого к оплате</span>
+            <span class="total-val" id="cart-total-display">0 ₽</span>
+          </div>
+          <input type="text" id="address" class="inp" placeholder="Адрес доставки">
+          <textarea id="comment" class="inp" placeholder="Комментарий курьеру (необязательно)"></textarea>
+          <button id="submit-order-btn" class="pay-btn">
+            <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Оплатить заказ
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- НАВИГАЦИЯ -->
+  <!-- ПРОФИЛЬ -->
+  <div id="page-profile" class="page">
+    <div class="top-header">
+      <div class="header-row">
+        <div class="header-title">Профиль</div>
+      </div>
+    </div>
+
+    <div class="profile-hero">
+      <div class="profile-top">
+        <div class="profile-avatar" id="profile-avatar">Z</div>
+        <div>
+          <div class="profile-name" id="profile-name">Загрузка...</div>
+          <div class="profile-id" id="profile-id">ID: —</div>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="bonus-points">0 ₽</div>
+          <div class="profile-stat-label">Бонусы</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-val">0</div>
+          <div class="profile-stat-label">Заказов</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-val">5%</div>
+          <div class="profile-stat-label">Кэшбэк</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loyalty-card">
+      <div class="loyalty-top">
+        <div class="loyalty-brand">FoodHub Card</div>
+        <div class="loyalty-status">Active</div>
+      </div>
+      <div class="loyalty-number" id="card-number">•••• •••• •••• 0000</div>
+      <div class="loyalty-qr"><div id="qrcode"></div></div>
+      <div class="loyalty-bottom">
+        <span>5% кэшбэк</span>
+        <span>Накопительная</span>
+      </div>
+    </div>
+
+    <div class="ref-card">
+      <div class="ref-title">Пригласи друга</div>
+      <div class="ref-sub">Получи 100 ₽ за каждого приглашённого</div>
+      <div class="ref-row">
+        <span class="ref-link" id="ref-link">https://t.me/...</span>
+        <button class="copy-btn" onclick="copyRefLink()">Копировать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
   <nav class="bottom-nav">
-    <button class="nav-item active" data-target="page-home"><span class="nav-icon">🏠</span><span>Главная</span></button>
-    <button class="nav-item" data-target="page-orders"><span class="nav-icon">📦</span><span>Заказы</span></button>
-    <button class="nav-item cart-tab" data-target="page-cart"><span class="nav-icon">🛒</span><span>Корзина</span><span class="badge" id="nav-cart-badge">0</span></button>
-    <button class="nav-item" data-target="page-profile"><span class="nav-icon">👤</span><span>Профиль</span></button>
+    <button class="nav-item active" data-target="page-home">
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      Главная
+    </button>
+    <button class="nav-item" data-target="page-orders">
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      </div>
+      Заказы
+    </button>
+    <button class="nav-item" data-target="page-cart">
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="badge" id="nav-cart-badge">0</span>
+      </div>
+      Корзина
+    </button>
+    <button class="nav-item" data-target="page-profile">
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      Профиль
+    </button>
   </nav>
 
   <script src="app.js"></script>
