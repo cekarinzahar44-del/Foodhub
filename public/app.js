@@ -241,7 +241,66 @@ async function loadUserProfile() {
   document.getElementById('profile-name').textContent = currentUser.first_name || 'Пользователь';
   document.getElementById('profile-id').textContent   = 'ID: ' + currentUser.id;
   document.getElementById('card-number').textContent  = '•••• •••• •••• ' + String(currentUser.id).slice(-4);
+// Добавь эту функцию после loadUserProfile
+async function loadUserOrders() {
+  if (!currentUser.id) return;
+  
+  const container = document.getElementById('orders-list');
+  if (!container) return;
+  
+  try {
+    const res = await fetch(`/api/user/${currentUser.id}/orders`);
+    const orders = await res.json();
+    
+    if (orders.length === 0) {
+      container.innerHTML = '<div class="empty-state">📦 У вас пока нет заказов</div>';
+      return;
+    }
+    
+    container.innerHTML = orders.map(order => `
+      <div class="order-card">
+        <div class="order-header">
+          <span class="order-id">Заказ #${order.id}</span>
+          <span class="order-status status-${order.status}">${getStatusText(order.status)}</span>
+        </div>
+        <div class="order-items">
+          ${getOrderItemsHTML(order)}
+        </div>
+        <div class="order-footer">
+          <span class="order-total">${parseFloat(order.total_amount).toLocaleString('ru-RU')} ₽</span>
+          <span class="order-date">${new Date(order.created_at).toLocaleString('ru-RU')}</span>
+        </div>
+      </div>
+    `).join('');
+    
+  } catch (err) {
+    console.error('Load orders error:', err);
+    container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки заказов</div>';
+  }
+}
 
+function getStatusText(status) {
+  const statuses = {
+    'pending_payment': '⏳ Ожидает оплаты',
+    'paid': '✅ Оплачен',
+    'cooking': '👨‍🍳 Готовится',
+    'ready': '🎁 Готов к выдаче',
+    'delivering': '🚚 Доставляется',
+    'delivered': '✅ Доставлен',
+    'cancelled': '❌ Отменён'
+  };
+  return statuses[status] || status;
+}
+
+function getOrderItemsHTML(order) {
+  try {
+    const items = JSON.parse(order.items || '[]');
+    return items.map(item => `• ${item.name} × ${item.qty}`).join('<br>');
+  } catch {
+    return 'Нет данных';
+  }
+}
+  
   // QR-код
   const qrBox = document.getElementById('qrcode');  if (qrBox) {
     qrBox.innerHTML = '';
