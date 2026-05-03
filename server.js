@@ -62,6 +62,15 @@ async function initDB() {
       )
     `);
 
+    // Миграция: добавляем is_active если её нет
+    await pool.query(`
+      ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true
+    `);
+    // Активируем все товары у которых is_active = NULL
+    await pool.query(`
+      UPDATE menu_items SET is_active = true WHERE is_active IS NULL
+    `);
+
     const { rows } = await pool.query('SELECT COUNT(*) FROM menu_items');
     console.log(`📊 Товаров в БД: ${rows[0].count}`);
 
