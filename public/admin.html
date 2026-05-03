@@ -3,88 +3,223 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Foodhub Admin Pro</title>
+  <title>Foodhub Admin</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root { --bg: #F2F4F7; --card: #FFFFFF; --primary: #3b82f6; --text: #111827; --sec: #6B7280; --nav: #FFFFFF; }
-    body { margin:0; padding:0; padding-bottom:80px; font-family: system-ui, sans-serif; background:var(--bg); color:var(--text); }
-    .header { background:linear-gradient(135deg, #1e3a8a, #3b82f6); color:white; padding:20px 16px; border-radius:0 0 20px 20px; box-shadow:0 4px 12px rgba(59,130,246,0.2); }
-    .header h1 { margin:0; font-size:22px; } .header p { margin:4px 0 0; opacity:0.9; font-size:14px; }
-    .view { display:none; padding:16px; animation:fadeIn 0.3s; } .view.active { display:block; }
-    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
-    .card { background:var(--card); padding:16px; border-radius:16px; box-shadow:0 2px 8px rgba(0,0,0,0.05); text-align:center; }
-    .val { font-size:24px; font-weight:800; color:var(--primary); } .lbl { font-size:12px; color:var(--sec); margin-top:4px; }
-    .item-card { background:var(--card); padding:14px; border-radius:14px; margin-bottom:10px; box-shadow:0 1px 4px rgba(0,0,0,0.05); }
-    .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-    .badge { padding:4px 10px; border-radius:10px; font-size:11px; font-weight:700; }
-    .st-p { background:#FEF3C7; color:#D97706; } .st-c { background:#DBEAFE; color:#2563EB; } .st-d { background:#FCE7F3; color:#DB2777; } .st-ok { background:#D1FAE5; color:#059669; } .st-x { background:#FEE2E2; color:#DC2626; }
-    .info { font-size:13px; color:var(--sec); margin-bottom:6px; }
-    .box { background:#F9FAFB; padding:10px; border-radius:10px; font-size:13px; margin-bottom:10px; }
-    select { width:100%; padding:10px; border-radius:10px; border:1px solid #E5E7EB; font-size:14px; font-weight:600; background:#fff; }
-    .menu-item { display:flex; align-items:center; background:var(--card); padding:12px; border-radius:12px; margin-bottom:10px; }
-    .menu-img { width:50px; height:50px; border-radius:10px; object-fit:cover; margin-right:12px; background:#eee; }
-    .details { flex:1; } .name { font-weight:600; font-size:15px; } .price { color:var(--primary); font-weight:700; }
-    .btn { background:var(--primary); color:white; border:none; padding:10px 16px; border-radius:10px; font-weight:600; cursor:pointer; width:100%; margin-bottom:10px; }
-    .btn-red { background:#EF4444; } .btn-sm { width:auto; padding:6px 12px; font-size:12px; margin:0 4px; }
-    .nav { position:fixed; bottom:0; left:0; width:100%; background:var(--nav); display:flex; justify-content:space-around; padding:10px 0 20px; box-shadow:0 -2px 10px rgba(0,0,0,0.05); z-index:100; }
-    .nav-btn { background:none; border:none; flex:1; display:flex; flex-direction:column; align-items:center; color:var(--sec); font-size:11px; font-weight:600; cursor:pointer; }
-    .nav-btn span { font-size:20px; margin-bottom:4px; } .nav-btn.active { color:var(--primary); }
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; }
-    .modal.open { display:flex; }
-    .modal-content { background:white; padding:20px; border-radius:16px; width:90%; max-width:400px; }
-    input, textarea { width:100%; padding:10px; margin:6px 0; border:1px solid #ddd; border-radius:8px; font-size:14px; box-sizing:border-box; }
-    .empty { text-align:center; padding:40px; color:var(--sec); }
+    :root {
+      --bg: #F2F4F7; --card: #FFFFFF; --primary: #3b82f6;
+      --text: #111827; --sec: #6B7280; --nav: #FFFFFF;
+      --danger: #EF4444; --success: #10B981;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
+
+    .header {
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+      color: white; padding: 20px 16px;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.25);
+    }
+    .header h1 { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .header p { margin: 4px 0 0; opacity: 0.85; font-size: 13px; }
+
+    .view { display: none; padding: 16px; animation: fadeIn 0.25s; }
+    .view.active { display: block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+    /* DASHBOARD */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .card {
+      background: var(--card); padding: 16px; border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center;
+    }
+    .val { font-size: 22px; font-weight: 800; color: var(--primary); }
+    .lbl { font-size: 11px; color: var(--sec); margin-top: 4px; }
+
+    /* ORDERS */
+    .item-card {
+      background: var(--card); padding: 14px; border-radius: 14px;
+      margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .order-id { font-weight: 700; font-size: 15px; }
+    .badge { padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+    .st-pending    { background: #FEF3C7; color: #D97706; }
+    .st-cooking    { background: #DBEAFE; color: #2563EB; }
+    .st-delivering { background: #FCE7F3; color: #DB2777; }
+    .st-delivered  { background: #D1FAE5; color: #059669; }
+    .st-cancelled  { background: #FEE2E2; color: #DC2626; }
+    .info { font-size: 13px; color: var(--sec); margin-bottom: 6px; }
+    .box { background: #F9FAFB; padding: 10px; border-radius: 10px; font-size: 13px; margin-bottom: 10px; line-height: 1.6; }
+    select {
+      width: 100%; padding: 10px; border-radius: 10px;
+      border: 1px solid #E5E7EB; font-size: 14px; font-weight: 600;
+      background: #fff; cursor: pointer;
+    }
+
+    /* MENU */
+    .menu-item {
+      display: flex; align-items: center; background: var(--card);
+      padding: 12px; border-radius: 12px; margin-bottom: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .menu-img {
+      width: 52px; height: 52px; border-radius: 10px;
+      object-fit: cover; margin-right: 12px; background: #eee; flex-shrink: 0;
+    }
+    .details { flex: 1; min-width: 0; }
+    .name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cat-tag { font-size: 11px; color: var(--sec); margin-top: 2px; }
+    .price { color: var(--primary); font-weight: 700; font-size: 15px; margin: 0 10px; white-space: nowrap; }
+
+    .btn {
+      background: var(--primary); color: white; border: none;
+      padding: 10px 16px; border-radius: 10px; font-weight: 600;
+      cursor: pointer; width: 100%; margin-bottom: 10px; font-size: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn:active { opacity: 0.85; }
+    .btn-red { background: var(--danger); }
+    .btn-sm {
+      width: 32px; height: 32px; padding: 0; border: none; border-radius: 8px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .btn-edit { background: #EFF6FF; color: var(--primary); }
+    .btn-del  { background: #FEF2F2; color: var(--danger); }
+
+    /* NAV */
+    .nav {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background: var(--nav); display: flex; justify-content: space-around;
+      padding: 10px 0 22px; box-shadow: 0 -2px 10px rgba(0,0,0,0.06); z-index: 100;
+    }
+    .nav-btn {
+      background: none; border: none; flex: 1;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: var(--sec); font-size: 11px; font-weight: 600; cursor: pointer;
+    }
+    .nav-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-btn.active { color: var(--primary); }
+
+    /* MODAL */
+    .modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 200;
+      align-items: flex-end; justify-content: center;
+    }
+    .modal.open { display: flex; }
+    .modal-content {
+      background: white; padding: 24px; border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 480px;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from{transform:translateY(100%)} to{transform:none} }
+    .modal-content h3 { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+    input, textarea {
+      width: 100%; padding: 11px 14px; margin-bottom: 10px;
+      border: 1px solid #E5E7EB; border-radius: 10px;
+      font-size: 14px; outline: none; background: #F9FAFB;
+    }
+    input:focus, textarea:focus { border-color: var(--primary); background: white; }
+    textarea { resize: none; height: 72px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
+    .modal-actions .btn { margin: 0; }
+
+    .empty { text-align: center; padding: 40px 20px; color: var(--sec); font-size: 14px; }
+    .loading-text { text-align: center; padding: 30px; color: var(--sec); }
   </style>
 </head>
 <body>
-  <div class="header"><h1>🔧 Foodhub Admin</h1><p>Управление рестораном</p></div>
 
-  <div id="dash-view" class="view active">
-    <div class="grid">
-      <div class="card"><div class="val" id="m-rev">0₽</div><div class="lbl"> Выручка</div></div>
-      <div class="card"><div class="val" id="m-ord">0</div><div class="lbl"> Заказов</div></div>
-      <div class="card"><div class="val" id="m-avg">0₽</div><div class="lbl">💳 Средний чек</div></div>
-      <div class="card"><div class="val" id="m-top">-</div><div class="lbl">🔥 Топ-товар</div></div>
-    </div>
-    <div class="empty" id="dash-loading">Загрузка метрик...</div>  </div>
-
-  <div id="orders-view" class="view"><div id="orders-list" class="empty">⏳ Загрузка...</div></div>
-
-  <div id="menu-view" class="view">
-    <button class="btn" onclick="openModal('add')">➕ Добавить позицию</button>
-    <div id="menu-list" class="empty">⏳ Загрузка...</div>
+  <div class="header">
+    <h1>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+      Foodhub Admin
+    </h1>
+    <p>Панель управления рестораном</p>
   </div>
 
+  <!-- ДАШБОРД -->
+  <div id="dash-view" class="view active">
+    <div class="grid">
+      <div class="card"><div class="val" id="m-rev">—</div><div class="lbl">Выручка</div></div>
+      <div class="card"><div class="val" id="m-ord">—</div><div class="lbl">Заказов</div></div>
+      <div class="card"><div class="val" id="m-avg">—</div><div class="lbl">Средний чек</div></div>
+      <div class="card"><div class="val" id="m-top" style="font-size:14px;line-height:1.3">—</div><div class="lbl">Топ-товар</div></div>
+    </div>
+    <div class="loading-text" id="dash-loading" style="display:none">Загрузка...</div>
+  </div>
+
+  <!-- ЗАКАЗЫ -->
+  <div id="orders-view" class="view">
+    <div id="orders-list" class="loading-text">Загрузка заказов...</div>
+  </div>
+
+  <!-- МЕНЮ -->
+  <div id="menu-view" class="view">
+    <button class="btn" onclick="openModal('add')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Добавить позицию
+    </button>
+    <div id="menu-list" class="loading-text">Загрузка меню...</div>
+  </div>
+
+  <!-- НАВИГАЦИЯ -->
   <nav class="nav">
-    <button class="nav-btn active" onclick="switchTab('dash', this)"><span></span> Дашборд</button>
-    <button class="nav-btn" onclick="switchTab('orders', this)"><span></span> Заказы</button>
-    <button class="nav-btn" onclick="switchTab('menu', this)"><span>🍔</span> Меню</button>
+    <button class="nav-btn active" onclick="switchTab('dash', this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Дашборд
+    </button>
+    <button class="nav-btn" onclick="switchTab('orders', this)">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      Заказы
+    </button>
+    <button class="nav-btn" onclick="switchTab('menu', this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+      Меню
+    </button>
   </nav>
 
+  <!-- МОДАЛЬНОЕ ОКНО -->
   <div id="modal" class="modal">
     <div class="modal-content">
-      <h3 id="modal-title">Редактировать</h3>
+      <h3 id="modal-title">Добавить позицию</h3>
       <input type="hidden" id="edit-id">
-      <input type="text" id="f-name" placeholder="Название">
-      <input type="text" id="f-cat" placeholder="Категория (burger, pizza...)">
-      <input type="number" id="f-price" placeholder="Цена">
-      <input type="text" id="f-img" placeholder="Ссылка на картинку">
-      <textarea id="f-desc" placeholder="Описание"></textarea>
-      <div style="display:flex; gap:10px; margin-top:10px;">
-        <button class="btn" onclick="saveItem()">💾 Сохранить</button>
+      <input type="text" id="f-name" placeholder="Название блюда">
+      <input type="text" id="f-cat" placeholder="Категория (burger, pizza, drink, fry...)">
+      <input type="number" id="f-price" placeholder="Цена, ₽" min="0">
+      <input type="url"  id="f-img"  placeholder="Ссылка на фото (https://...)">
+      <textarea          id="f-desc" placeholder="Описание"></textarea>
+      <div class="modal-actions">
+        <button class="btn" onclick="saveItem()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Сохранить
+        </button>
         <button class="btn btn-red" onclick="closeModal()">Отмена</button>
       </div>
     </div>
   </div>
 
   <script>
-    const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-    const MY_ID = 8043971654; 
-    if (tg.initDataUnsafe?.user?.id !== MY_ID) document.body.innerHTML = '<div style="text-align:center;padding:50px;"> Доступ запрещён</div>';
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
 
-    const statusLabels = { 'pending': '🆕 Новый', 'cooking': '👨‍ Готовится', 'delivering': ' В пути', 'delivered': '✅ Доставлен', 'cancelled': '❌ Отменён' };
-    let allOrders = [];
+    const ADMIN_ID = 8043971654;
+    if (tg.initDataUnsafe?.user?.id !== ADMIN_ID) {
+      document.body.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:16px;color:#6B7280;text-align:center;padding:32px"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><p style="font-size:18px;font-weight:700;color:#111">Доступ запрещён</p><p style="font-size:14px">Эта страница только для администратора</p></div>';
+    }
+
+    const statusLabels = {
+      pending:    'Новый',
+      cooking:    'Готовится',
+      delivering: 'В пути',
+      delivered:  'Доставлен',
+      cancelled:  'Отменён'
+    };
 
     function switchTab(id, btn) {
       document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
@@ -92,102 +227,172 @@
       document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
       btn.classList.add('active');
       if (id === 'orders') loadOrders();
-      if (id === 'menu') loadMenuAdmin();
-      if (id === 'dash') loadMetrics();
+      if (id === 'menu')   loadMenuAdmin();
+      if (id === 'dash')   loadMetrics();
     }
 
-    async function loadMetrics() {      document.getElementById('dash-loading').style.display = 'block';
+    // ── МЕТРИКИ ──
+    async function loadMetrics() {
       try {
         const res = await fetch('/api/admin/metrics');
         const m = await res.json();
-        document.getElementById('m-rev').textContent = m.revenue.toLocaleString() + ' ₽';
+        document.getElementById('m-rev').textContent = Number(m.revenue).toLocaleString('ru-RU') + ' ₽';
         document.getElementById('m-ord').textContent = m.totalOrders;
-        document.getElementById('m-avg').textContent = Math.round(m.avgCheck).toLocaleString() + ' ₽';
-        document.getElementById('m-top').textContent = m.topItem;
-        document.getElementById('dash-loading').style.display = 'none';
-      } catch { document.getElementById('dash-loading').textContent = '❌ Ошибка метрик'; }
+        document.getElementById('m-avg').textContent = Number(m.avgCheck).toLocaleString('ru-RU') + ' ₽';
+        document.getElementById('m-top').textContent = m.topItem || '—';
+      } catch {
+        document.getElementById('m-rev').textContent = '—';
+        document.getElementById('m-ord').textContent = '—';
+        document.getElementById('m-avg').textContent = '—';
+        document.getElementById('m-top').textContent = '—';
+      }
     }
 
+    // ── ЗАКАЗЫ ──
     async function loadOrders() {
       const el = document.getElementById('orders-list');
-      el.innerHTML = '<div class="empty">⏳ Загрузка...</div>';
+      el.innerHTML = '<div class="loading-text">Загрузка...</div>';
       try {
         const res = await fetch('/api/admin/orders');
-        allOrders = await res.json();
-        el.innerHTML = allOrders.map(o => {
-          let items = 'Нет данных';
-          try { const j = typeof o.items === 'string' ? JSON.parse(o.items) : o.items; if(Array.isArray(j)) items = j.map(i=>`• <b>${i.name}</b> x${i.qty}`).join('<br>'); } catch{}
+        const orders = await res.json();
+        if (!orders.length) { el.innerHTML = '<div class="empty">Заказов пока нет</div>'; return; }
+
+        el.innerHTML = orders.map(o => {
+          let itemsHtml = 'Нет данных';
+          try {
+            const j = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
+            if (Array.isArray(j)) itemsHtml = j.map(i => `• <b>${i.name}</b> × ${i.qty}`).join('<br>');
+          } catch {}
+
+          const stClass = `st-${o.status}`;
           return `<div class="item-card">
-            <div class="top"><span class="order-id">#${o.id}</span><span class="badge st-${o.status==='pending'?'p':o.status==='cooking'?'c':o.status==='delivering'?'d':o.status==='delivered'?'ok':'x'}">${statusLabels[o.status]||o.status}</span></div>
-            <div class="info">📍 ${o.address||'Нет адреса'}</div>
-            <div class="box">${items}</div>
-            <div class="top"><span style="font-weight:700">${parseFloat(o.total_amount).toLocaleString()} ₽</span><span style="font-size:11px;color:#888">${new Date(o.created_at).toLocaleTimeString()}</span></div>
+            <div class="top">
+              <span class="order-id">#${o.id}</span>
+              <span class="badge ${stClass}">${statusLabels[o.status] || o.status}</span>
+            </div>
+            <div class="info">Адрес: ${o.address || 'не указан'}</div>
+            <div class="box">${itemsHtml}</div>
+            <div class="top" style="margin-bottom:10px">
+              <span style="font-weight:700;font-size:16px">${parseFloat(o.total_amount).toLocaleString('ru-RU')} ₽</span>
+              <span style="font-size:11px;color:#aaa">${new Date(o.created_at).toLocaleString('ru-RU', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
+            </div>
             <select onchange="changeStatus(${o.id}, this.value)">
-              ${Object.keys(statusLabels).map(k=>`<option value="${k}" ${o.status===k?'selected':''}>${statusLabels[k]}</option>`).join('')}
-            </select></div>`;
-        }).join('') || '<div class="empty">📭 Заказов нет</div>';
-      } catch { el.innerHTML = '<div class="empty">❌ Ошибка</div>'; }
+              ${Object.entries(statusLabels).map(([k,v]) => `<option value="${k}" ${o.status===k?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </div>`;
+        }).join('');
+      } catch {
+        el.innerHTML = '<div class="empty">Ошибка загрузки заказов</div>';
+      }
     }
 
-    async function changeStatus(id, st) {
-      try { await fetch(`/api/admin/order/${id}/status`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:st})}); tg.HapticFeedback.notificationOccurred('success'); loadOrders(); } 
-      catch { tg.HapticFeedback.notificationOccurred('error'); }
+    async function changeStatus(id, status) {
+      try {
+        await fetch(`/api/admin/order/${id}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        tg.HapticFeedback.notificationOccurred('success');
+        loadOrders();
+      } catch {
+        tg.HapticFeedback.notificationOccurred('error');
+      }
     }
 
+    // ── МЕНЮ ──
     async function loadMenuAdmin() {
       const el = document.getElementById('menu-list');
-      el.innerHTML = '<div class="empty">⏳ Загрузка...</div>';
+      el.innerHTML = '<div class="loading-text">Загрузка...</div>';
       try {
         const res = await fetch('/api/admin/menu');
         const items = await res.json();
+        if (!items.length) { el.innerHTML = '<div class="empty">Меню пустое</div>'; return; }
+
         el.innerHTML = items.map(i => `
           <div class="menu-item">
-            <img src="${i.image_url||'https://via.placeholder.com/50'}" class="menu-img" onerror="this.src='https://via.placeholder.com/50'">
-            <div class="details"><div class="name">${i.name}</div><div style="font-size:12px;color:#666">${i.category}</div></div>
-            <div class="price">${i.price} ₽</div>
-            <div><button class="btn btn-sm" onclick="openModal('edit', ${i.id}, '${i.name}', '${i.category}', ${i.price}, '${i.image_url||''}', '${i.description||''}')">✏️</button>            <button class="btn btn-sm btn-red" onclick="deleteItem(${i.id})">🗑</button></div>
-          </div>`).join('') || '<div class="empty">📭 Меню пусто</div>';
-      } catch { el.innerHTML = '<div class="empty">❌ Ошибка</div>'; }
+            <img src="${i.image_url || ''}" class="menu-img"
+                 onerror="this.src='https://via.placeholder.com/52x52/F3F4F6/9CA3AF?text=?'"
+                 alt="${i.name}">
+            <div class="details">
+              <div class="name">${i.name}</div>
+              <div class="cat-tag">${i.category}</div>
+            </div>
+            <div class="price">${parseFloat(i.price).toLocaleString('ru-RU')} ₽</div>
+            <button class="btn-sm btn-edit" title="Редактировать"
+              onclick="openModal('edit',${i.id},'${escape(i.name)}','${i.category}',${i.price},'${i.image_url||''}','${escape(i.description||'')}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn-sm btn-del" title="Удалить" onclick="deleteItem(${i.id})" style="margin-left:6px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>`).join('');
+      } catch {
+        el.innerHTML = '<div class="empty">Ошибка загрузки меню</div>';
+      }
     }
 
     function openModal(mode, id, name, cat, price, img, desc) {
       document.getElementById('modal').classList.add('open');
-      document.getElementById('modal-title').textContent = mode === 'add' ? '➕ Добавить позицию' : '✏️ Редактировать';
-      document.getElementById('edit-id').value = id || '';
-      document.getElementById('f-name').value = name || '';
-      document.getElementById('f-cat').value = cat || '';
-      document.getElementById('f-price').value = price || '';
-      document.getElementById('f-img').value = img || '';
-      document.getElementById('f-desc').value = desc || '';
+      document.getElementById('modal-title').textContent = mode === 'add' ? 'Добавить позицию' : 'Редактировать';
+      document.getElementById('edit-id').value  = id   || '';
+      document.getElementById('f-name').value   = name ? unescape(name) : '';
+      document.getElementById('f-cat').value    = cat  || '';
+      document.getElementById('f-price').value  = price|| '';
+      document.getElementById('f-img').value    = img  || '';
+      document.getElementById('f-desc').value   = desc ? unescape(desc) : '';
     }
-    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('open');
+    }
 
     async function saveItem() {
-      const id = document.getElementById('edit-id').value;
+      const id    = document.getElementById('edit-id').value;
+      const price = parseFloat(document.getElementById('f-price').value);
+      const name  = document.getElementById('f-name').value.trim();
+      if (!name || isNaN(price) || price < 0) return tg.showAlert('Заполните название и корректную цену!');
+
       const data = {
-        name: document.getElementById('f-name').value,
-        category: document.getElementById('f-cat').value,
-        price: parseFloat(document.getElementById('f-price').value),
-        image_url: document.getElementById('f-img').value,
-        description: document.getElementById('f-desc').value
+        name,
+        category:    document.getElementById('f-cat').value.trim(),
+        price,
+        image_url:   document.getElementById('f-img').value.trim(),
+        description: document.getElementById('f-desc').value.trim()
       };
-      if (!data.name || isNaN(data.price)) return tg.showAlert('Заполните название и цену!');
-      
+
       try {
-        const url = id ? `/api/admin/menu/${id}` : '/api/admin/menu';
+        const url    = id ? `/api/admin/menu/${id}` : '/api/admin/menu';
         const method = id ? 'PUT' : 'POST';
-        await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+        const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        if (!res.ok) throw new Error('Ошибка сервера');
         tg.HapticFeedback.notificationOccurred('success');
-        closeModal(); loadMenuAdmin();
-      } catch { tg.showAlert('Ошибка сохранения'); }
+        closeModal();
+        loadMenuAdmin();
+      } catch {
+        tg.showAlert('Ошибка сохранения. Попробуйте ещё раз.');
+      }
     }
 
     async function deleteItem(id) {
-      if (!confirm('Удалить позицию?')) return;
-      try { await fetch(`/api/admin/menu/${id}`, {method:'DELETE'}); tg.HapticFeedback.notificationOccurred('warning'); loadMenuAdmin(); } 
-      catch { tg.showAlert('Ошибка удаления'); }
+      tg.showConfirm('Удалить позицию из меню?', async (confirmed) => {
+        if (!confirmed) return;
+        try {
+          await fetch(`/api/admin/menu/${id}`, { method: 'DELETE' });
+          tg.HapticFeedback.notificationOccurred('warning');
+          loadMenuAdmin();
+        } catch {
+          tg.showAlert('Ошибка удаления');
+        }
+      });
     }
 
+    // Закрытие модалки по клику на фон
+    document.getElementById('modal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('modal')) closeModal();
+    });
+
+    // Старт
     loadMetrics();
   </script>
 </body>
