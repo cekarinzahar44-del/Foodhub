@@ -7,8 +7,38 @@ let menu = [];
 let currentUser = tg.initDataUnsafe?.user || {};
 let currentCategory = 'all';
 
+// ── 💾 ФУНКЦИИ СОХРАНЕНИЯ КОРЗИНЫ (НОВОЕ) ──
+function saveCart() {
+  try {
+    localStorage.setItem('foodhub_cart', JSON.stringify(cart));
+  } catch (e) {
+    console.error('Cart save error:', e);
+  }
+}
+
+function loadCart() {
+  try {
+    const saved = localStorage.getItem('foodhub_cart');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        cart = parsed;
+        return true;
+      }
+    }
+  } catch (e) {
+    console.error('Cart load error:', e);
+  }
+  return false;
+}
+
 // ── ЗАСТАВКА ──
 window.addEventListener('load', () => {
+  // 💾 Загружаем сохраненную корзину при старте
+  if (loadCart()) {
+    updateBadge();
+  }
+  
   setTimeout(() => {
     const splash = document.getElementById('splash-screen');
     if (splash) {
@@ -17,8 +47,7 @@ window.addEventListener('load', () => {
         splash.style.display = 'none';
         document.body.classList.remove('loading');
         loadMenu();
-        loadUserProfile();
-      }, 500);
+        loadUserProfile();      }, 500);
     }
   }, 2000);
 });
@@ -67,8 +96,7 @@ async function loadMenu() {
 // ── ОТРИСОВКА МЕНЮ ──
 function renderMenu(search = '') {
   const grid = document.getElementById('menu-grid');
-  let items = menu;
-  if (currentCategory !== 'all') items = items.filter(i => i.category === currentCategory);
+  let items = menu;  if (currentCategory !== 'all') items = items.filter(i => i.category === currentCategory);
   if (search) items = items.filter(i => i.name.toLowerCase().includes(search) || (i.description || '').toLowerCase().includes(search));
 
   if (items.length === 0) {
@@ -103,6 +131,7 @@ function addToCart(id) {
   else cart.push({ ...item, qty: 1 });
   updateBadge();
   tg.HapticFeedback.impactOccurred('light');
+  saveCart(); // 💾 Сохраняем корзину
 }
 
 function updateQty(id, delta) {
@@ -112,11 +141,11 @@ function updateQty(id, delta) {
   if (item.qty <= 0) cart = cart.filter(c => c.id !== id);
   renderCart();
   updateBadge();
+  saveCart(); // 💾 Сохраняем корзину
 }
 
 function updateBadge() {
-  const count = cart.reduce((s, i) => s + i.qty, 0);
-  const badge = document.getElementById('nav-cart-badge');
+  const count = cart.reduce((s, i) => s + i.qty, 0);  const badge = document.getElementById('nav-cart-badge');
   if (!badge) return;
   badge.textContent = count;
   badge.style.display = count > 0 ? 'flex' : 'none';
@@ -165,8 +194,7 @@ document.getElementById('submit-order-btn')?.addEventListener('click', async () 
   btn.disabled = true;
   btn.textContent = 'Обработка...';
 
-  try {
-    const total = cart.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
+  try {    const total = cart.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
     const res = await fetch('/api/payment/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -185,6 +213,7 @@ document.getElementById('submit-order-btn')?.addEventListener('click', async () 
         if (status === 'paid') {
           tg.showAlert('Заказ оплачен! Ждите доставки.');
           cart = [];
+          saveCart(); // 💾 Очищаем сохраненную корзину после оплаты
           renderCart();
           updateBadge();
           if (document.getElementById('address')) document.getElementById('address').value = '';
@@ -214,8 +243,7 @@ async function loadUserProfile() {
   document.getElementById('card-number').textContent  = '•••• •••• •••• ' + String(currentUser.id).slice(-4);
 
   // QR-код
-  const qrBox = document.getElementById('qrcode');
-  if (qrBox) {
+  const qrBox = document.getElementById('qrcode');  if (qrBox) {
     qrBox.innerHTML = '';
     if (typeof QRCode !== 'undefined') {
       new QRCode(qrBox, { text: 'foodhub_user_' + currentUser.id, width: 80, height: 80 });
