@@ -37,6 +37,21 @@
     .lbl { font-size: 11px; color: var(--sec); margin-top: 4px; }
 
     /* ORDERS */
+    .filters {
+      background: var(--card); padding: 12px; border-radius: 12px;
+      margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .filter-row { display: flex; gap: 8px; }
+    .filter-row input {
+      flex: 1; padding: 8px; border: 1px solid #E5E7EB;
+      border-radius: 8px; font-size: 13px;
+    }
+    .btn-filter {
+      background: var(--primary); color: white; border: none;      padding: 8px 12px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; cursor: pointer;
+    }
+    .btn-today { background: #10B981; }
+    
     .item-card {
       background: var(--card); padding: 14px; border-radius: 14px;
       margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
@@ -44,11 +59,13 @@
     .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .order-id { font-weight: 700; font-size: 15px; }
     .badge { padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; }
-    .st-pending    { background: #FEF3C7; color: #D97706; }
-    .st-cooking    { background: #DBEAFE; color: #2563EB; }
-    .st-delivering { background: #FCE7F3; color: #DB2777; }
-    .st-delivered  { background: #D1FAE5; color: #059669; }
-    .st-cancelled  { background: #FEE2E2; color: #DC2626; }
+    .st-pending_payment { background: #FEF3C7; color: #D97706; }
+    .st-paid           { background: #D1FAE5; color: #059669; }
+    .st-cooking        { background: #DBEAFE; color: #2563EB; }
+    .st-ready          { background: #C3E6CB; color: #155724; }
+    .st-delivering     { background: #FCE7F3; color: #DB2777; }
+    .st-delivered      { background: #D1FAE5; color: #059669; }
+    .st-cancelled      { background: #FEE2E2; color: #DC2626; }
     .info { font-size: 13px; color: var(--sec); margin-bottom: 6px; }
     .box { background: #F9FAFB; padding: 10px; border-radius: 10px; font-size: 13px; margin-bottom: 10px; line-height: 1.6; }
     select {
@@ -79,8 +96,7 @@
       display: flex; align-items: center; justify-content: center; gap: 6px;
     }
     .btn:active { opacity: 0.85; }
-    .btn-red { background: var(--danger); }
-    .btn-sm {
+    .btn-red { background: var(--danger); }    .btn-sm {
       width: 32px; height: 32px; padding: 0; border: none; border-radius: 8px;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
@@ -129,8 +145,7 @@
     .empty { text-align: center; padding: 40px 20px; color: var(--sec); font-size: 14px; }
     .loading-text { text-align: center; padding: 30px; color: var(--sec); }
   </style>
-</head>
-<body>
+</head><body>
 
   <div class="header">
     <h1>
@@ -150,11 +165,21 @@
       <div class="card"><div class="val" id="m-avg">—</div><div class="lbl">Средний чек</div></div>
       <div class="card"><div class="val" id="m-top" style="font-size:14px;line-height:1.3">—</div><div class="lbl">Топ-товар</div></div>
     </div>
-    <div class="loading-text" id="dash-loading" style="display:none">Загрузка...</div>
   </div>
 
   <!-- ЗАКАЗЫ -->
   <div id="orders-view" class="view">
+    <div class="filters">
+      <div class="filter-row">
+        <button class="btn-filter btn-today" onclick="loadTodayOrders()">Сегодня</button>
+        <button class="btn-filter" onclick="loadYesterdayOrders()">Вчера</button>
+      </div>
+      <div class="filter-row">
+        <input type="date" id="date-from" placeholder="С">
+        <input type="date" id="date-to" placeholder="По">
+        <button class="btn-filter" onclick="loadOrdersByPeriod()">Показать</button>
+      </div>
+    </div>
     <div id="orders-list" class="loading-text">Загрузка заказов...</div>
   </div>
 
@@ -169,8 +194,7 @@
 
   <!-- НАВИГАЦИЯ -->
   <nav class="nav">
-    <button class="nav-btn active" onclick="switchTab('dash', this)">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <button class="nav-btn active" onclick="switchTab('dash', this)">      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Дашборд
     </button>
     <button class="nav-btn" onclick="switchTab('orders', this)">
@@ -214,11 +238,12 @@
     }
 
     const statusLabels = {
-      pending:    'Новый',
-      cooking:    'Готовится',
-      delivering: 'В пути',
-      delivered:  'Доставлен',
-      cancelled:  'Отменён'
+      pending_payment: '⏳ Ожидает оплаты',
+      paid:            '✅ Оплачен',
+      cooking:         '👨‍🍳 Готовится',
+      ready:           '🎁 Готов к выдаче',
+      delivering:      '🚚 В пути',
+      delivered:       '✅ Доставлен',      cancelled:       '❌ Отменён'
     };
 
     function switchTab(id, btn) {
@@ -226,7 +251,7 @@
       document.getElementById(id + '-view').classList.add('active');
       document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
       btn.classList.add('active');
-      if (id === 'orders') loadOrders();
+      if (id === 'orders') loadTodayOrders();
       if (id === 'menu')   loadMenuAdmin();
       if (id === 'dash')   loadMetrics();
     }
@@ -248,14 +273,41 @@
       }
     }
 
-    // ── ЗАКАЗЫ ──
-    async function loadOrders() {
+    // ── ЗАКАЗЫ: СЕГОДНЯ ──
+    async function loadTodayOrders() {
+      const today = new Date().toISOString().split('T')[0];
+      await loadOrders({ date: today });
+    }
+
+    // ── ЗАКАЗЫ: ВЧЕРА ──
+    async function loadYesterdayOrders() {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const dateStr = yesterday.toISOString().split('T')[0];
+      await loadOrders({ date: dateStr });
+    }
+
+    // ── ЗАКАЗЫ: ПЕРИОД ──
+    async function loadOrdersByPeriod() {
+      const from = document.getElementById('date-from').value;
+      const to = document.getElementById('date-to').value;
+      if (!from || !to) return tg.showAlert('Выберите даты периода');
+      await loadOrders({ from, to });    }
+
+    // ── ЗАКАЗЫ: ОБЩАЯ ФУНКЦИЯ ──
+    async function loadOrders(filters = {}) {
       const el = document.getElementById('orders-list');
       el.innerHTML = '<div class="loading-text">Загрузка...</div>';
+      
       try {
-        const res = await fetch('/api/admin/orders');
+        const params = new URLSearchParams(filters);
+        const res = await fetch(`/api/admin/orders?${params}`);
         const orders = await res.json();
-        if (!orders.length) { el.innerHTML = '<div class="empty">Заказов пока нет</div>'; return; }
+        
+        if (!orders.length) { 
+          el.innerHTML = '<div class="empty">Заказов не найдено</div>'; 
+          return; 
+        }
 
         el.innerHTML = orders.map(o => {
           let itemsHtml = 'Нет данных';
@@ -265,16 +317,20 @@
           } catch {}
 
           const stClass = `st-${o.status}`;
+          const orderDate = new Date(o.created_at).toLocaleString('ru-RU', {
+            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+          });
+          
           return `<div class="item-card">
             <div class="top">
               <span class="order-id">#${o.id}</span>
               <span class="badge ${stClass}">${statusLabels[o.status] || o.status}</span>
             </div>
-            <div class="info">Адрес: ${o.address || 'не указан'}</div>
+            <div class="info">📅 ${orderDate}</div>
+            <div class="info">📍 ${o.address || 'не указан'}</div>
             <div class="box">${itemsHtml}</div>
             <div class="top" style="margin-bottom:10px">
               <span style="font-weight:700;font-size:16px">${parseFloat(o.total_amount).toLocaleString('ru-RU')} ₽</span>
-              <span style="font-size:11px;color:#aaa">${new Date(o.created_at).toLocaleString('ru-RU', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
             </div>
             <select onchange="changeStatus(${o.id}, this.value)">
               ${Object.entries(statusLabels).map(([k,v]) => `<option value="${k}" ${o.status===k?'selected':''}>${v}</option>`).join('')}
@@ -285,7 +341,6 @@
         el.innerHTML = '<div class="empty">Ошибка загрузки заказов</div>';
       }
     }
-
     async function changeStatus(id, status) {
       try {
         await fetch(`/api/admin/order/${id}/status`, {
@@ -294,9 +349,10 @@
           body: JSON.stringify({ status })
         });
         tg.HapticFeedback.notificationOccurred('success');
-        loadOrders();
+        tg.showAlert(`✅ Статус изменён на "${statusLabels[status]}"\nКлиент получил уведомление`);
       } catch {
         tg.HapticFeedback.notificationOccurred('error');
+        tg.showAlert('❌ Ошибка обновления статуса');
       }
     }
 
@@ -334,8 +390,7 @@
 
     function openModal(mode, id, name, cat, price, img, desc) {
       document.getElementById('modal').classList.add('open');
-      document.getElementById('modal-title').textContent = mode === 'add' ? 'Добавить позицию' : 'Редактировать';
-      document.getElementById('edit-id').value  = id   || '';
+      document.getElementById('modal-title').textContent = mode === 'add' ? 'Добавить позицию' : 'Редактировать';      document.getElementById('edit-id').value  = id   || '';
       document.getElementById('f-name').value   = name ? unescape(name) : '';
       document.getElementById('f-cat').value    = cat  || '';
       document.getElementById('f-price').value  = price|| '';
@@ -384,10 +439,8 @@
         } catch {
           tg.showAlert('Ошибка удаления');
         }
-      });
-    }
+      });    }
 
-    // Закрытие модалки по клику на фон
     document.getElementById('modal').addEventListener('click', (e) => {
       if (e.target === document.getElementById('modal')) closeModal();
     });
