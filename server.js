@@ -341,7 +341,8 @@ app.post('/api/admin/order/:id/status', async (req, res) => {
   }
 });
 
-// === АДМИНКА: МЕНЮ ===app.get('/api/admin/menu', requireDB, async (req, res) => {
+// === АДМИНКА: МЕНЮ ===
+app.get('/api/admin/menu', requireDB, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM menu_items ORDER BY id DESC');
     res.json(result.rows);
