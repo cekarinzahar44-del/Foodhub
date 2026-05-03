@@ -146,9 +146,13 @@ app.get('/api/menu', requireDB, async (req, res) => {
 });
 
 // === ОПЛАТА ===
-app.post('/api/payment/create', requireDB, async (req, res) => {
-  const { BigInt(userId), items, total, address, comment } = req.body;
+// === 💳 ОПЛАТА ===
+app.post('/api/payment/create', async (req, res) => {
+  // ✅ 1. Сначала просто достаем переменные
+  const { userId, items, total, address, comment } = req.body;
+  
   try {
+    // ✅ 2. BigInt() применяем ТОЛЬКО в массиве параметров запроса
     const orderRes = await pool.query(
       `INSERT INTO orders (user_id, total_amount, status, address, comment, items)
        VALUES ($1, $2, 'pending_payment', $3, $4, $5) RETURNING id`,
@@ -171,7 +175,9 @@ app.post('/api/payment/create', requireDB, async (req, res) => {
 
     const botUsername = bot.botInfo?.username || process.env.BOT_USERNAME;
     const paymentUrl = `https://t.me/${botUsername}?start=pay_${orderId}_${Buffer.from(invoiceLink).toString('base64')}`;
+    
     res.json({ success: true, orderId, invoice_url: paymentUrl });
+    
   } catch (err) {
     console.error('❌ Payment Error:', err.message);
     res.status(500).json({ error: err.message });
