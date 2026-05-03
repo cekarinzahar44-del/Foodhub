@@ -148,11 +148,10 @@ app.get('/api/menu', requireDB, async (req, res) => {
 // === ОПЛАТА ===
 // === 💳 ОПЛАТА ===
 app.post('/api/payment/create', async (req, res) => {
-  // ✅ 1. Сначала просто достаем переменные
   const { userId, items, total, address, comment } = req.body;
   
   try {
-    // ✅ 2. BigInt() применяем ТОЛЬКО в массиве параметров запроса
+    // 1. Сохраняем заказ в БД
     const orderRes = await pool.query(
       `INSERT INTO orders (user_id, total_amount, status, address, comment, items)
        VALUES ($1, $2, 'pending_payment', $3, $4, $5) RETURNING id`,
@@ -160,11 +159,12 @@ app.post('/api/payment/create', async (req, res) => {
     );
     const orderId = orderRes.rows[0].id;
 
+    // 2. Создаём прямую ссылку на оплату (Telegram сам вернёт https://t.me/invoice/...)
     const invoiceLink = await bot.telegram.createInvoiceLink({
       title: `Заказ #${orderId}`,
       description: items.map(i => `${i.name} x${i.qty}`).join(', '),
       payload: JSON.stringify({ orderId, userId, total }),
-      provider_token: process.env.PAYMENT_PROVIDER_TOKEN,
+      provider_token: process.env.PAYMENT_PROVIDER_TOKEN, // 🔍 Проверь, что токен верный!
       currency: 'RUB',
       prices: items.map(i => ({ label: i.name, amount: Math.round(i.price * i.qty * 100) })),
       need_name: false,
@@ -173,10 +173,8 @@ app.post('/api/payment/create', async (req, res) => {
       need_shipping_address: false
     });
 
-    const botUsername = bot.botInfo?.username || process.env.BOT_USERNAME;
-    const paymentUrl = `https://t.me/${botUsername}?start=pay_${orderId}_${Buffer.from(invoiceLink).toString('base64')}`;
-    
-    res.json({ success: true, orderId, invoice_url: paymentUrl });
+    // 3. Отдаём ссылку как есть, без обёрток
+    res.json({ success: true, orderId, invoice_url: invoiceLink });
     
   } catch (err) {
     console.error('❌ Payment Error:', err.message);
