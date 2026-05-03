@@ -147,7 +147,7 @@ app.get('/api/menu', requireDB, async (req, res) => {
 
 // === ОПЛАТА ===
 app.post('/api/payment/create', requireDB, async (req, res) => {
-  const { userId, items, total, address, comment } = req.body;
+  const { BigInt(userId), items, total, address, comment } = req.body;
   try {
     const orderRes = await pool.query(
       `INSERT INTO orders (user_id, total_amount, status, address, comment, items)
