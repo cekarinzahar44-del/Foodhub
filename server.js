@@ -208,25 +208,44 @@ bot.on('successful_payment', async (ctx) => {
 app.get('/api/admin/orders', async (req, res) => {
   try {
     // 🔥 Добавили WHERE status = 'paid' — показываем только оплаченные
-    const result = await pool.query(`
-      SELECT * FROM orders 
-      WHERE status = 'paid' 
-      ORDER BY created_at DESC 
-      LIMIT 50
-    `);
+    // === АДМИНКА: ЗАКАЗЫ ===
+app.get('/api/admin/orders', async (req, res) => {
+  try {
+    const { date, from, to } = req.query;
+    
+    let query = 'SELECT * FROM orders WHERE 1=1';
+    const params = [];
+    let paramIndex = 1;
+    
+    // Фильтр по конкретной дате
+    if (date) {
+      query += ` AND DATE(created_at) = $${paramIndex}`;
+      params.push(date);
+      paramIndex++;
+    }
+    
+    // Фильтр по периоду
+    if (from) {
+      query += ` AND DATE(created_at) >= $${paramIndex}`;
+      params.push(from);
+      paramIndex++;
+    }
+    if (to) {
+      query += ` AND DATE(created_at) <= $${paramIndex}`;
+      params.push(to);
+      paramIndex++;
+    }
+    
+    query += ' ORDER BY created_at DESC LIMIT 100';
+    
+    const result = await pool.query(query, params);
+    console.log(`📦 Загружено заказов: ${result.rows.length}`);
+    
     res.json(result.rows);
   } catch (err) { 
     console.error('Admin orders error:', err);
     res.status(500).json({ error: 'Ошибка загрузки заказов' }); 
   }
-});
-
-app.post('/api/admin/order/:id/status', requireDB, async (req, res) => {
-  const { status } = req.body;
-  try {
-    await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
-    res.json({ success: true });
-  } catch { res.status(500).json({ error: 'Ошибка' }); }
 });
 
 // === АДМИНКА: МЕНЮ (CRUD) ===
