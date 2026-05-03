@@ -52,9 +52,9 @@ function requireDB(req, res, next) {
 
 initDB();
 
-// === 🔥 ПЛАНИРОВЩИК (ТЕСТ: 02:02 - 02:10 МСК) ===
+// === 🔥 ПЛАНИРОВЩИК (10:00 - 22:00 МСК) ===
 async function startShiftScheduler() {
-  console.log('🕒 Планировщик запущен (ТЕСТ: 02:02 - 02:10 МСК)');
+  console.log('🕒 Планировщик запущен (10:00 - 22:00 МСК)');
   setInterval(async () => {
     try {
       if (!pool) return;
@@ -64,14 +64,14 @@ async function startShiftScheduler() {
       const m = moscow.getMinutes();
       const today = moscow.toISOString().split('T')[0];
 
-      // 🔥 ОТКРЫТИЕ: 02:02 - 02:03
-      if (h === 2 && m >= 2 && m < 3 && lastOpenDate !== today) {
+      // 🔥 ОТКРЫТИЕ: 10:00 - 10:01 (окно 2 минуты)
+      if (h === 10 && m < 2 && lastOpenDate !== today) {
         lastOpenDate = today;
         console.log(`🔔 ${h}:${m} - Открываю смену`);
         await openShift();
       }
-      // 🔥 ЗАКРЫТИЕ: 02:10 - 02:11
-      if (h === 2 && m >= 10 && m < 11 && lastCloseDate !== today) {
+      // 🔥 ЗАКРЫТИЕ: 22:00 - 22:01 (окно 2 минуты)
+      if (h === 22 && m < 2 && lastCloseDate !== today) {
         lastCloseDate = today;
         console.log(`🔔 ${h}:${m} - Закрываю смену`);
         await closeShift();
@@ -93,10 +93,10 @@ async function openShift() {
     if (active) { console.log('🟢 Смена уже открыта'); return; }
     await pool.query('INSERT INTO shifts (is_active) VALUES (true)');
     console.log('🟢 Смена открыта');
-    if (bot && ADMIN_ID) await bot.telegram.sendMessage(ADMIN_ID, '🟢 *Смена открыта*\n⏰ 02:02 - 02:10 МСК (ТЕСТ)', { parse_mode: 'Markdown' });
+    if (bot && ADMIN_ID) await bot.telegram.sendMessage(ADMIN_ID, '🟢 *Смена открыта*\n⏰ Время работы: 10:00 - 22:00 МСК', { parse_mode: 'Markdown' });
   } catch (err) { console.error('Open error:', err.message); }
 }
-// === 🔥 ИСПРАВЛЕННАЯ ФУНКЦИЯ (РАЗДЕЛЁННЫЕ ЗАПРОСЫ) ===
+// === 🔥 ИСПРАВЛЕННАЯ ФУНКЦИЯ (РАЗДЕЛЁННЫЕ ЗАПРОСЫ - РАБОТАЕТ БЕЗ ОШИБОК) ===
 async function closeShift() {
   try {
     const active = await getActiveShift();
