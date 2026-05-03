@@ -61,12 +61,8 @@ async function initDB() {
       )
     `);
 
-    await pool.query(`
-      ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true
-    `);
-    await pool.query(`
-      UPDATE menu_items SET is_active = true WHERE is_active IS NULL
-    `);
+    await pool.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true`);
+    await pool.query(`UPDATE menu_items SET is_active = true WHERE is_active IS NULL`);
 
     const { rows } = await pool.query('SELECT COUNT(*) FROM menu_items');
     console.log(`📊 Товаров в БД: ${rows[0].count}`);
@@ -81,7 +77,6 @@ async function initDB() {
       `);
       console.log('✅ Добавлено 4 тестовых товара');
     }
-
     console.log('✅ Таблицы готовы');
   } catch (err) {
     console.error('❌ Ошибка БД:', err.message);
@@ -96,11 +91,11 @@ function requireDB(req, res, next) {
 
 initDB();
 
-const app = express();const bot = new Telegraf(process.env.BOT_TOKEN);
+const app = express();
+const bot = new Telegraf(process.env.BOT_TOKEN);
 const PORT = process.env.PORT || 3000;
 const WEBAPP_URL = process.env.WEBAPP_URL;
 const ADMIN_ID = parseInt(process.env.ADMIN_ID);
-
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -120,7 +115,6 @@ app.get('/api/menu', requireDB, async (req, res) => {
 // === ОПЛАТА ===
 app.post('/api/payment/create', async (req, res) => {
   const { userId, items, total, address, comment } = req.body;
-  
   try {
     const orderRes = await pool.query(
       `INSERT INTO orders (user_id, total_amount, status, address, comment, items)
@@ -128,7 +122,6 @@ app.post('/api/payment/create', async (req, res) => {
       [BigInt(userId), total, address, comment || '', JSON.stringify(items)]
     );
     const orderId = orderRes.rows[0].id;
-
     const invoiceLink = await bot.telegram.createInvoiceLink({
       title: `Заказ #${orderId}`,
       description: items.map(i => `${i.name} x${i.qty}`).join(', '),
@@ -141,11 +134,10 @@ app.post('/api/payment/create', async (req, res) => {
       need_email: false,
       need_shipping_address: false
     });
-
     res.json({ success: true, orderId, invoice_url: invoiceLink });
-    
   } catch (err) {
-    console.error('❌ Payment Error:', err.message);    res.status(500).json({ error: err.message });
+    console.error('❌ Payment Error:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -153,7 +145,6 @@ app.post('/api/payment/create', async (req, res) => {
 bot.on('pre_checkout_query', async (ctx) => {
   await ctx.answerPreCheckoutQuery(true);
 });
-
 // === УСПЕШНАЯ ОПЛАТА ===
 bot.on('successful_payment', async (ctx) => {
   try {
@@ -162,7 +153,7 @@ bot.on('successful_payment', async (ctx) => {
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', ['paid', orderId]);
     await bot.telegram.sendMessage(
       ADMIN_ID,
-      `💰 *Оплата получена!*\n\n📦 Заказ #${orderId}\n💵 ${ctx.message.successful_payment.total_amount / 100} ₽`,
+      `💰 *Оплата получена!*\n📦 Заказ #${orderId}\n💵 ${ctx.message.successful_payment.total_amount / 100} ₽`,
       { parse_mode: 'Markdown' }
     );
     console.log(`✅ Заказ #${orderId} оплачен!`);
@@ -171,36 +162,19 @@ bot.on('successful_payment', async (ctx) => {
   }
 });
 
-// === АДМИНКА: ЗАКАЗЫ (С ФИЛЬТРАМИ ПО ДАТЕ) ===
+// === АДМИНКА: ЗАКАЗЫ ===
 app.get('/api/admin/orders', async (req, res) => {
   try {
     const { date, from, to } = req.query;
-    
     let query = 'SELECT * FROM orders WHERE 1=1';
     const params = [];
     let paramIndex = 1;
-    
-    if (date) {
-      query += ` AND DATE(created_at) = $${paramIndex}`;
-      params.push(date);
-      paramIndex++;
-    }
-    
-    if (from) {
-      query += ` AND DATE(created_at) >= $${paramIndex}`;
-      params.push(from);
-      paramIndex++;
-    }
-    if (to) {
-      query += ` AND DATE(created_at) <= $${paramIndex}`;
-      params.push(to);
-      paramIndex++;    }
-    
+    if (date) { query += ` AND DATE(created_at) = $${paramIndex}`; params.push(date); paramIndex++; }
+    if (from) { query += ` AND DATE(created_at) >= $${paramIndex}`; params.push(from); paramIndex++; }
+    if (to) { query += ` AND DATE(created_at) <= $${paramIndex}`; params.push(to); paramIndex++; }
     query += ' ORDER BY created_at DESC LIMIT 100';
-    
     const result = await pool.query(query, params);
     console.log(`📦 Загружено заказов: ${result.rows.length}`);
-    
     res.json(result.rows);
   } catch (err) { 
     console.error('Admin orders error:', err);
@@ -211,27 +185,17 @@ app.get('/api/admin/orders', async (req, res) => {
 // === АДМИНКА: ИЗМЕНИТЬ СТАТУС ===
 app.post('/api/admin/order/:id/status', async (req, res) => {
   const { status } = req.body;
-  
   try {
     const orderRes = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
-    if (orderRes.rows.length === 0) {
-      return res.status(404).json({ error: 'Заказ не найден' });
-    }
+    if (orderRes.rows.length === 0) return res.status(404).json({ error: 'Заказ не найден' });
     const order = orderRes.rows[0];
-    
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
-    
     try {
       await bot.telegram.sendMessage(
         order.user_id,
-        `📦 **Заказ #${order.id}**\n\nСтатус изменён: **${getStatusText(status)}**\n\n${getOrderDetails(order)}`,
-        { parse_mode: 'Markdown' }
-      );
-      console.log(`✅ Уведомление отправлено пользователю ${order.user_id}`);
-    } catch (notifyErr) {
-      console.error('Не удалось отправить уведомление:', notifyErr.message);
-    }
-    
+        `📦 **Заказ #${order.id}**\nСтатус: **${getStatusText(status)}**\n${getOrderDetails(order)}`,
+        { parse_mode: 'Markdown' }      );
+    } catch (e) { console.error('Notify error:', e.message); }
     res.json({ success: true });
   } catch (err) {
     console.error('Update status error:', err);
@@ -243,7 +207,8 @@ app.post('/api/admin/order/:id/status', async (req, res) => {
 app.get('/api/admin/menu', requireDB, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM menu_items ORDER BY id DESC');
-    res.json(result.rows);  } catch { res.status(500).json({ error: 'Ошибка' }); }
+    res.json(result.rows);
+  } catch { res.status(500).json({ error: 'Ошибка' }); }
 });
 
 app.post('/api/admin/menu', requireDB, async (req, res) => {
@@ -278,35 +243,25 @@ app.delete('/api/admin/menu/:id', requireDB, async (req, res) => {
 // === АДМИНКА: МЕТРИКИ ===
 app.get('/api/admin/metrics', requireDB, async (req, res) => {
   try {
-    const revenue = await pool.query(
-      "SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status != 'cancelled'"
-    );
-    const orders = await pool.query(
-      "SELECT COUNT(*) as count FROM orders WHERE status != 'cancelled'"
-    );
+    const revenue = await pool.query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status != 'cancelled'");    const orders = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status != 'cancelled'");
     const totalOrders = parseInt(orders.rows[0].count);
     const totalRevenue = parseFloat(revenue.rows[0].total);
     const avgCheck = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
-
     let topItem = '—';
     try {
-      const allOrders = await pool.query(
-        "SELECT items FROM orders WHERE status != 'cancelled' AND items IS NOT NULL"
-      );      const counts = {};
+      const allOrders = await pool.query("SELECT items FROM orders WHERE status != 'cancelled' AND items IS NOT NULL");
+      const counts = {};
       for (const row of allOrders.rows) {
         try {
           const items = typeof row.items === 'string' ? JSON.parse(row.items) : row.items;
           if (Array.isArray(items)) {
-            for (const item of items) {
-              counts[item.name] = (counts[item.name] || 0) + (item.qty || 1);
-            }
+            for (const item of items) counts[item.name] = (counts[item.name] || 0) + (item.qty || 1);
           }
         } catch {}
       }
       const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
       if (sorted.length > 0) topItem = sorted[0][0];
     } catch {}
-
     res.json({ revenue: totalRevenue, totalOrders, avgCheck, topItem });
   } catch { res.status(500).json({ error: 'Ошибка' }); }
 });
@@ -314,10 +269,7 @@ app.get('/api/admin/metrics', requireDB, async (req, res) => {
 // === ПОЛЬЗОВАТЕЛЬ: БАЛАНС ===
 app.get('/api/user/:userId/balance', requireDB, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT bonus_balance FROM users WHERE telegram_id = $1',
-      [req.params.userId]
-    );
+    const result = await pool.query('SELECT bonus_balance FROM users WHERE telegram_id = $1', [req.params.userId]);
     res.json({ balance: result.rows[0]?.bonus_balance || 0 });
   } catch { res.status(500).json({ balance: 0 }); }
 });
@@ -340,9 +292,9 @@ app.get('/api/user/:userId/orders', async (req, res) => {
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
-
-// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===function getStatusText(status) {
-  const statuses = {
+// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+function getStatusText(status) {
+  const s = {
     'pending_payment': '⏳ Ожидает оплаты',
     'paid': '✅ Оплачен',
     'cooking': '👨‍🍳 Готовится',
@@ -351,17 +303,16 @@ app.get('/admin', (req, res) => {
     'delivered': '✅ Доставлен',
     'cancelled': '❌ Отменён'
   };
-  return statuses[status] || status;
+  return s[status] || status;
+}
 
 function getOrderDetails(order) {
   let items = 'Товары:\n';
   try {
-    const itemsData = JSON.parse(order.items || '[]');
-    itemsData.forEach(item => {
-      items += `• ${item.name} × ${item.qty}\n`;
-    });
+    const data = JSON.parse(order.items || '[]');
+    data.forEach(i => { items += `• ${i.name} × ${i.qty}\n`; });
   } catch {}
-  return `${items}\n💰 ${parseFloat(order.total_amount).toLocaleString('ru-RU')} ₽\n📍 ${order.address || 'Без адреса'}`;
+  return `${items}💰 ${parseFloat(order.total_amount).toLocaleString('ru-RU')} ₽\n📍 ${order.address || 'Без адреса'}`;
 }
 
 // === БОТ ===
@@ -373,25 +324,21 @@ bot.start(async (ctx) => {
         [BigInt(ctx.from.id), ctx.from.first_name, ctx.from.username]
       );
     }
-    const kb = {
-      inline_keyboard: [[{ text: '🍽 Открыть Меню', web_app: { url: WEBAPP_URL } }]]
-    };
+    const kb = { inline_keyboard: [[{ text: '🍽 Открыть Меню', web_app: { url: WEBAPP_URL } }]] };
     if (ctx.from.id === ADMIN_ID) {
       kb.inline_keyboard.push([{ text: '⚙️ Админка', web_app: { url: `${WEBAPP_URL}/admin` } }]);
     }
-    await ctx.reply('Добро пожаловать в FoodHub! 🍔\nВыберите действие:', { reply_markup: kb });
-  } catch (err) {
-    console.error('Bot start error:', err);
-  }
+    await ctx.reply('Добро пожаловать в FoodHub! 🍔', { reply_markup: kb });
+  } catch (err) { console.error('Bot start error:', err); }
 });
 
 bot.catch(err => console.error('Bot error:', err));
 
 // === ЗАПУСК ===
 bot.launch();
-app.listen(PORT, () => {  console.log(`🚀 Server запущен на порту ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`🚀 Server запущен на порту ${PORT}`);
   console.log(`🌐 URL: ${WEBAPP_URL}`);
 });
 
-process.on('SIGINT', () => { bot.stop('SIGINT'); process.exit(); });
-process.on('SIGTERM', () => { bot.stop('SIGTERM'); process.exit(); });
+process.on('SIGINT', () => { bot.stop('SIGINT'); process.exit(); });process.on('SIGTERM', () => { bot.stop('SIGTERM'); process.exit(); });
