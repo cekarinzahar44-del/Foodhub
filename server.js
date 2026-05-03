@@ -319,6 +319,79 @@ app.get('/api/user/:userId/balance', requireDB, async (req, res) => {
   } catch { res.status(500).json({ balance: 0 }); }
 });
 
+// === 📦 ЗАКАЗЫ ПОЛЬЗОВАТЕЛЯ ===
+app.get('/api/user/:userId/orders', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20',
+      [BigInt(req.params.userId)]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('User orders error:', err);
+    res.status(500).json({ error: 'Ошибка загрузки заказов' });
+  }
+});
+
+// === 🔧 АДМИН: ИЗМЕНИТЬ СТАТУС ЗАКАЗА ===
+app.post('/api/admin/order/:id/status', async (req, res) => {
+  const { status } = req.body;
+  
+  try {
+    // Получаем текущий заказ
+    const orderRes = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Заказ не найден' });
+    }
+    const order = orderRes.rows[0];
+    
+    // Обновляем статус
+    await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
+    
+    // Отправляем уведомление клиенту
+    try {
+      await bot.telegram.sendMessage(
+        order.user_id,
+        `📦 **Заказ #${order.id}**\n\nСтатус изменён: **${getStatusText(status)}**\n\n${getOrderDetails(order)}`,
+        { parse_mode: 'Markdown' }
+      );
+      console.log(`✅ Уведомление отправлено пользователю ${order.user_id}`);
+    } catch (notifyErr) {
+      console.error('Не удалось отправить уведомление:', notifyErr.message);
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Update status error:', err);
+    res.status(500).json({ error: 'Ошибка обновления статуса' });
+  }
+});
+
+// Вспомогательные функции
+function getStatusText(status) {
+  const statuses = {
+    'pending_payment': '⏳ Ожидает оплаты',
+    'paid': '✅ Оплачен',
+    'cooking': '👨‍🍳 Готовится',
+    'ready': '🎁 Готов к выдаче',
+    'delivering': '🚚 Доставляется',
+    'delivered': '✅ Доставлен',
+    'cancelled': '❌ Отменён'
+  };
+  return statuses[status] || status;
+}
+
+function getOrderDetails(order) {
+  let items = 'Товары:\n';
+  try {
+    const itemsData = JSON.parse(order.items || '[]');
+    itemsData.forEach(item => {
+      items += `• ${item.name} × ${item.qty}\n`;
+    });
+  } catch {}
+  
+  return `${items}\n💰 ${parseFloat(order.total_amount).toLocaleString('ru-RU')} ₽\n📍 ${order.address || 'Без адреса'}`;
+}
 // === БОТ ===
 bot.start(async (ctx) => {
   try {
