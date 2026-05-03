@@ -341,7 +341,8 @@ app.delete('/api/admin/menu/:id', requireDB, async (req, res) => {
   } catch { res.status(500).json({ error: 'Ошибка удаления' }); }
 });
 
-// === АДМИНКА: МЕТРИКИ ===app.get('/api/admin/metrics', requireDB, async (req, res) => {
+// === АДМИНКА: МЕТРИКИ ===
+app.get('/api/admin/metrics', requireDB, async (req, res) => {
   try {
     const revenue = await pool.query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status != 'cancelled'");
     const orders = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status != 'cancelled'");
