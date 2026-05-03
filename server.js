@@ -61,7 +61,6 @@ async function initDB() {
       )
     `);
 
-    // Миграция: добавляем is_active если её нет
     await pool.query(`
       ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true
     `);
@@ -96,8 +95,8 @@ function requireDB(req, res, next) {
 }
 
 initDB();
-const app = express();
-const bot = new Telegraf(process.env.BOT_TOKEN);
+
+const app = express();const bot = new Telegraf(process.env.BOT_TOKEN);
 const PORT = process.env.PORT || 3000;
 const WEBAPP_URL = process.env.WEBAPP_URL;
 const ADMIN_ID = parseInt(process.env.ADMIN_ID);
@@ -145,8 +144,8 @@ app.post('/api/payment/create', async (req, res) => {
 
     res.json({ success: true, orderId, invoice_url: invoiceLink });
     
-  } catch (err) {    console.error('❌ Payment Error:', err.message);
-    res.status(500).json({ error: err.message });
+  } catch (err) {
+    console.error('❌ Payment Error:', err.message);    res.status(500).json({ error: err.message });
   }
 });
 
@@ -194,8 +193,8 @@ app.get('/api/admin/orders', async (req, res) => {
     }
     if (to) {
       query += ` AND DATE(created_at) <= $${paramIndex}`;
-      params.push(to);      paramIndex++;
-    }
+      params.push(to);
+      paramIndex++;    }
     
     query += ' ORDER BY created_at DESC LIMIT 100';
     
@@ -222,7 +221,6 @@ app.post('/api/admin/order/:id/status', async (req, res) => {
     
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
     
-    // Уведомление клиенту
     try {
       await bot.telegram.sendMessage(
         order.user_id,
@@ -243,9 +241,9 @@ app.post('/api/admin/order/:id/status', async (req, res) => {
 
 // === АДМИНКА: МЕНЮ ===
 app.get('/api/admin/menu', requireDB, async (req, res) => {
-  try {    const result = await pool.query('SELECT * FROM menu_items ORDER BY id DESC');
-    res.json(result.rows);
-  } catch { res.status(500).json({ error: 'Ошибка' }); }
+  try {
+    const result = await pool.query('SELECT * FROM menu_items ORDER BY id DESC');
+    res.json(result.rows);  } catch { res.status(500).json({ error: 'Ошибка' }); }
 });
 
 app.post('/api/admin/menu', requireDB, async (req, res) => {
@@ -292,9 +290,9 @@ app.get('/api/admin/metrics', requireDB, async (req, res) => {
 
     let topItem = '—';
     try {
-      const allOrders = await pool.query(        "SELECT items FROM orders WHERE status != 'cancelled' AND items IS NOT NULL"
-      );
-      const counts = {};
+      const allOrders = await pool.query(
+        "SELECT items FROM orders WHERE status != 'cancelled' AND items IS NOT NULL"
+      );      const counts = {};
       for (const row of allOrders.rows) {
         try {
           const items = typeof row.items === 'string' ? JSON.parse(row.items) : row.items;
@@ -338,10 +336,15 @@ app.get('/api/user/:userId/orders', async (req, res) => {
   }
 });
 
-// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
-function getStatusText(status) {
+// === СТРАНИЦА АДМИНКИ ===
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===function getStatusText(status) {
   const statuses = {
-    'pending_payment': '⏳ Ожидает оплаты',    'paid': '✅ Оплачен',
+    'pending_payment': '⏳ Ожидает оплаты',
+    'paid': '✅ Оплачен',
     'cooking': '👨‍🍳 Готовится',
     'ready': '🎁 Готов к выдаче',
     'delivering': '🚚 Доставляется',
@@ -387,9 +390,9 @@ bot.catch(err => console.error('Bot error:', err));
 
 // === ЗАПУСК ===
 bot.launch();
-app.listen(PORT, () => {
-  console.log(`🚀 Server запущен на порту ${PORT}`);
+app.listen(PORT, () => {  console.log(`🚀 Server запущен на порту ${PORT}`);
   console.log(`🌐 URL: ${WEBAPP_URL}`);
 });
+
 process.on('SIGINT', () => { bot.stop('SIGINT'); process.exit(); });
 process.on('SIGTERM', () => { bot.stop('SIGTERM'); process.exit(); });
