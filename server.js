@@ -5,8 +5,6 @@ const path = require('path');
 const { Pool } = require('pg');
 
 let pool = null;
-
-// Переменные для защиты от повторных срабатываний
 let lastOpenDate = '';
 let lastCloseDate = '';
 
@@ -47,9 +45,9 @@ async function initDB() {
         total_amount DECIMAL(10,2) NOT NULL,
         status VARCHAR(50) DEFAULT 'pending_payment',
         address TEXT,
-        comment TEXT,        items TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
+        comment TEXT,
+        items TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP      )
     `);
 
     await pool.query(`
@@ -96,14 +94,14 @@ async function initDB() {
     pool = null;
   }
 }
+
 function requireDB(req, res, next) {
-  if (!pool) return res.status(503).json({ error: 'База данных недоступна' });
-  next();
+  if (!pool) return res.status(503).json({ error: 'База данных недоступна' });  next();
 }
 
-// === 🔥 НАДЁЖНЫЙ ПЛАНИРОВЩИК СМЕН ===
+// === 🔥 ПЛАНИРОВЩИК СМЕН (11:00 - 23:30) ===
 async function startShiftScheduler() {
-  console.log('🕒 Планировщик смен запущен');
+  console.log('🕒 Планировщик смен запущен (11:00 - 23:30 МСК)');
   
   setInterval(async () => {
     try {
@@ -113,7 +111,7 @@ async function startShiftScheduler() {
       const moscow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' }));
       const h = moscow.getHours();
       const m = moscow.getMinutes();
-      const today = moscow.toISOString().split('T')[0]; // YYYY-MM-DD
+      const today = moscow.toISOString().split('T')[0];
 
       // Открытие: 11:00 - 11:01 (окно 2 минуты)
       if (h === 11 && m < 2 && lastOpenDate !== today) {
@@ -121,8 +119,8 @@ async function startShiftScheduler() {
         await openShift();
       }
 
-      // Закрытие: 23:00 - 23:01 (окно 2 минуты)
-      if (h === 23 && m < 2 && lastCloseDate !== today) {
+      // Закрытие: 23:30 - 23:31 (окно 2 минуты)
+      if (h === 23 && m >= 30 && m < 32 && lastCloseDate !== today) {
         lastCloseDate = today;
         await closeShift();
       }
@@ -145,9 +143,9 @@ async function openShift() {
     if (active) { console.log('🟢 Смена уже открыта'); return; }
     
     await pool.query('INSERT INTO shifts (is_active) VALUES (true)');
-    console.log('🟢 Смена открыта автоматически');    await bot.telegram.sendMessage(ADMIN_ID, '🟢 *Смена открыта*\n⏰ Время работы: 11:00 - 23:00 МСК', { parse_mode: 'Markdown' });
-  } catch (err) { console.error('Ошибка открытия смены:', err.message); }
-}
+    console.log('🟢 Смена открыта автоматически');
+    await bot.telegram.sendMessage(ADMIN_ID, '🟢 *Смена открыта*\n⏰ Время работы: 11:00 - 23:30 МСК', { parse_mode: 'Markdown' });
+  } catch (err) { console.error('Ошибка открытия смены:', err.message); }}
 
 async function closeShift() {
   try {
@@ -194,8 +192,8 @@ async function closeShift() {
       `💰 Выручка: ${totalRevenue.toLocaleString('ru-RU')} ₽\n` +
       `🧾 Средний чек: ${avgCheck.toLocaleString('ru-RU')} ₽\n` +
       `✅ Завершено: ${completedOrders}\n` +
-      `❌ Отменено: ${cancelledOrders}\n\n` +      `📦 *Продажи:*\n${itemsList || 'Нет продаж'}`;
-
+      `❌ Отменено: ${cancelledOrders}\n\n` +
+      `📦 *Продажи:*\n${itemsList || 'Нет продаж'}`;
     await bot.telegram.sendMessage(ADMIN_ID, report, { parse_mode: 'Markdown' });
     console.log('📧 Отчёт отправлен админу');
   } catch (err) { console.error('Ошибка закрытия смены:', err.message); }
@@ -244,8 +242,8 @@ app.post('/api/payment/create', async (req, res) => {
 });
 
 bot.on('pre_checkout_query', async (ctx) => { await ctx.answerPreCheckoutQuery(true); });
-bot.on('successful_payment', async (ctx) => {
-  try {
+
+bot.on('successful_payment', async (ctx) => {  try {
     const payload = JSON.parse(ctx.message.successful_payment.invoice_payload);
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', ['paid', payload.orderId]);
     await bot.telegram.sendMessage(ADMIN_ID, `💰 *Оплата получена!*\n📦 Заказ #${payload.orderId}\n💵 ${ctx.message.successful_payment.total_amount / 100} ₽`, { parse_mode: 'Markdown' });
@@ -292,9 +290,9 @@ app.get('/api/admin/menu', requireDB, async (req, res) => {
 
 app.post('/api/admin/menu', requireDB, async (req, res) => {
   const { name, description, price, category, image_url } = req.body;
-  try {    const result = await pool.query('INSERT INTO menu_items (name, description, price, category, image_url, is_active) VALUES ($1, $2, $3, $4, $5, true) RETURNING *', [name, description, price, category, image_url || '']);
-    res.json(result.rows[0]);
-  } catch { res.status(500).json({ error: 'Ошибка создания' }); }
+  try {
+    const result = await pool.query('INSERT INTO menu_items (name, description, price, category, image_url, is_active) VALUES ($1, $2, $3, $4, $5, true) RETURNING *', [name, description, price, category, image_url || '']);
+    res.json(result.rows[0]);  } catch { res.status(500).json({ error: 'Ошибка создания' }); }
 });
 
 app.put('/api/admin/menu/:id', requireDB, async (req, res) => {
@@ -341,8 +339,8 @@ app.get('/api/user/:userId/balance', requireDB, async (req, res) => {
   try {
     const result = await pool.query('SELECT bonus_balance FROM users WHERE telegram_id = $1', [req.params.userId]);
     res.json({ balance: result.rows[0]?.bonus_balance || 0 });
-  } catch { res.status(500).json({ balance: 0 }); }});
-
+  } catch { res.status(500).json({ balance: 0 }); }
+});
 app.get('/api/user/:userId/orders', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20', [BigInt(req.params.userId)]);
