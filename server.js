@@ -352,7 +352,6 @@ app.get('/admin', (req, res) => {
     'cancelled': '❌ Отменён'
   };
   return statuses[status] || status;
-}
 
 function getOrderDetails(order) {
   let items = 'Товары:\n';
