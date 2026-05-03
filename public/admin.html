@@ -329,19 +329,21 @@
       }
     }
 
-    // Кнопка "Сегодня"
+    // Кнопка "Сегодня" — ставит дату и загружает
     async function loadTodayOrders() {
-      document.getElementById('date-from').value = getDateStr(0);
-      document.getElementById('date-to').value = getDateStr(0);
-      loadOrders({ date: getDateStr(0) });
+      const today = getDateStr(0);
+      document.getElementById('date-from').value = today;
+      document.getElementById('date-to').value = today;
+      loadOrders({ date: today });
     }
 
-    // Кнопка "Вчера"
+    // Кнопка "Вчера" — ставит дату и загружает
     async function loadYesterdayOrders() {
-      document.getElementById('date-from').value = getDateStr(-1);
-      document.getElementById('date-to').value = getDateStr(-1);
-      loadOrders({ date: getDateStr(-1) });
+      const yesterday = getDateStr(-1);
+      document.getElementById('date-from').value = yesterday;
+      document.getElementById('date-to').value = yesterday;      loadOrders({ date: yesterday });
     }
+
     // Кнопка "Показать" (свой период)
     async function loadCustomPeriod() {
       const from = document.getElementById('date-from').value;
@@ -388,9 +390,9 @@
               onclick="openModal('edit',${i.id},'${escape(i.name)}','${i.category}',${i.price},'${i.image_url||''}','${escape(i.description||'')}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <button class="btn-sm btn-del" title="Удалить" onclick="deleteItem(${i.id})" style="margin-left:6px">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-            </button>          </div>`).join('');
+            <button class="btn-sm btn-del" title="Удалить" onclick="deleteItem(${i.id})" style="margin-left:6px">              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>`).join('');
       } catch {
         el.innerHTML = '<div class="empty">Ошибка загрузки меню</div>';
       }
@@ -437,9 +439,9 @@
         tg.showAlert('Ошибка сохранения. Попробуйте ещё раз.');
       }
     }
-
     async function deleteItem(id) {
-      tg.showConfirm('Удалить позицию из меню?', async (confirmed) => {        if (!confirmed) return;
+      tg.showConfirm('Удалить позицию из меню?', async (confirmed) => {
+        if (!confirmed) return;
         try {
           await fetch(`/api/admin/menu/${id}`, { method: 'DELETE' });
           tg.HapticFeedback.notificationOccurred('warning');
