@@ -205,11 +205,20 @@ bot.on('successful_payment', async (ctx) => {
 });
 
 // === АДМИНКА: ЗАКАЗЫ ===
-app.get('/api/admin/orders', requireDB, async (req, res) => {
+app.get('/api/admin/orders', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 50');
+    // 🔥 Добавили WHERE status = 'paid' — показываем только оплаченные
+    const result = await pool.query(`
+      SELECT * FROM orders 
+      WHERE status = 'paid' 
+      ORDER BY created_at DESC 
+      LIMIT 50
+    `);
     res.json(result.rows);
-  } catch { res.status(500).json({ error: 'Ошибка' }); }
+  } catch (err) { 
+    console.error('Admin orders error:', err);
+    res.status(500).json({ error: 'Ошибка загрузки заказов' }); 
+  }
 });
 
 app.post('/api/admin/order/:id/status', requireDB, async (req, res) => {
