@@ -964,3 +964,93 @@ textarea.input-field, textarea.inp { resize: none; height: 78px; }
   .nav-item         { font-size: 9px; }
   .nav-item svg     { width: 18px; height: 18px; }
 }
+/* ════════════════════════════════════════
+   КОМПАКТНОЕ МЕНЮ (FIT ONE SCREEN)
+   Добавь в САМЫЙ КОНЕЦ style.css
+   ════════════════════════════════════════ */
+
+/* 1. Ужимаем шапку и баннер */
+.top-header { padding: 10px 16px 6px !important; }
+.top-header h1 { font-size: 20px !important; }
+
+.hero-banner {
+  margin: 6px 12px !important;
+  padding: 12px !important;
+  border-radius: 16px !important;
+}
+.hero-title { font-size: 15px !important; margin-bottom: 4px !important; }
+.hero-sub { font-size: 10px !important; margin-bottom: 8px !important; }
+.hero-stats { gap: 12px !important; }
+.hero-stat-val { font-size: 14px !important; }
+.hero-stat-label { font-size: 9px !important; }
+
+/* 2. Компактный поиск и категории */
+.search-bar { padding: 4px 12px 6px !important; }
+#search-input { 
+  padding: 9px 12px 9px 36px !important; 
+  font-size: 13px !important; 
+  border-radius: 12px !important;
+}
+
+.categories-container { padding: 2px 12px 8px !important; gap: 6px !important; }
+.cat-btn { font-size: 11px !important; padding: 6px 10px !important; border-radius: 20px !important; }
+
+/* 3. Заголовок секции */
+.section-title { padding: 2px 12px 6px !important; font-size: 15px !important; }
+
+/* 4. Сетка меню */
+.menu-grid {
+  gap: 8px !important;
+  padding: 0 12px 14px !important;
+}
+
+/* 5. Карточка товара */
+.menu-item, .menu-card {
+  min-height: auto !important;
+  border-radius: 14px !important;
+}
+
+.item-image, .menu-card-img {
+  height: 95px !important; /* Было ~140-160px */
+}
+
+.item-info, .menu-card-body {
+  padding: 7px 9px !important;
+  gap: 2px !important;
+}
+
+.item-name, .menu-card-name {
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  min-height: auto !important;
+}
+
+.item-desc, .menu-card-desc {
+  font-size: 10px !important;
+  line-height: 1.25 !important;
+  max-height: 24px !important;
+}
+
+.item-footer, .menu-card-footer {
+  margin-top: 3px !important;
+  padding-top: 3px !important;
+}
+
+.item-price, .menu-card-price {
+  font-size: 13px !important;
+}
+
+.add-btn {
+  width: 26px !important;
+  height: 26px !important;
+  font-size: 16px !important;
+  border-radius: 7px !important;
+}
+
+/* 6. Нижняя навигация (чуть компактнее) */
+.bottom-nav {
+  height: 72px !important;
+  padding-top: 6px !important;
+}
+.nav-icon-wrap, .nav-icon { width: 40px !important; height: 28px !important; }
+.nav-item { font-size: 9px !important; }
