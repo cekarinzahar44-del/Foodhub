@@ -81,36 +81,40 @@ async function loadMenu() {
     }
     renderMenu();
   } catch (err) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:span 2">Не удалось загрузить меню<br><small style="color:rgba(255,255,255,0.25)">${err.message}</small></div>`;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:span 2">Не удалось загрузить меню</div>`;
   }
 }
 
-/* ════ РЕНДЕР МЕНЮ ════ */
+/* ════ РЕНДЕР МЕНЮ (ИСПРАВЛЕНО ПОД 2 КОЛОНКИ) ════ */
 function renderMenu(search = '') {
   const grid = document.getElementById('menu-grid');
   if (!grid) return;
+  
   let items = menu;
   if (currentCategory !== 'all') items = items.filter(i => i.category === currentCategory);
   if (search) items = items.filter(i =>
     i.name.toLowerCase().includes(search) ||
     (i.description || '').toLowerCase().includes(search)
   );
+
   if (items.length === 0) {
     grid.innerHTML = '<div class="empty-state" style="grid-column:span 2">Ничего не найдено</div>';
     return;
   }
+
+  // Здесь используются классы, которые мы прописали в новом CSS (index.html)
   grid.innerHTML = items.map(item => `
-    <div class="menu-item">
-      <div class="item-image">
+    <div class="menu-card">
+      <div class="menu-card-img">
         <img src="${item.image_url || ''}" alt="${item.name}" loading="lazy"
-             onerror="this.src='https://via.placeholder.com/300x180/111/333?text=+'">
+             onerror="this.src='https://via.placeholder.com/300x200/222/444?text=Food'">
       </div>
-      <div class="item-info">
-        <div class="item-name">${item.name}</div>
-        <div class="item-desc">${item.description || ''}</div>
-        <div class="item-footer">
-          <div class="item-price">${parseFloat(item.price).toLocaleString('ru-RU')} ₽</div>
-          <button class="add-btn" onclick="addToCart(${item.id})" aria-label="Добавить">+</button>
+      <div class="menu-card-body">
+        <div class="menu-card-name">${item.name}</div>
+        <div class="menu-card-desc">${item.description || ''}</div>
+        <div class="menu-card-footer">
+          <div class="menu-card-price">${parseFloat(item.price).toLocaleString('ru-RU')} ₽</div>
+          <button class="add-btn" onclick="addToCart(${item.id})">+</button>
         </div>
       </div>
     </div>
@@ -184,10 +188,8 @@ function renderCart() {
 /* ════ ОПЛАТА ════ */
 document.getElementById('submit-order-btn')?.addEventListener('click', async () => {
   const address = document.getElementById('address')?.value.trim();
-  if (!address)       return tg.showAlert('Введите адрес доставки!');
-  if (!currentUser.id) return tg.showAlert('Не удалось определить пользователя.');
-  if (cart.length === 0) return tg.showAlert('Корзина пуста!');
-
+  if (!address) return tg.showAlert('Введите адрес доставки!');
+  
   const btn = document.getElementById('submit-order-btn');
   btn.disabled = true;
   btn.textContent = 'Обработка...';
@@ -198,24 +200,20 @@ document.getElementById('submit-order-btn')?.addEventListener('click', async () 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId:  currentUser.id,
-        items:   cart,
+        userId: currentUser.id,
+        items: cart,
         total,
         address,
         comment: document.getElementById('comment')?.value || ''
       })
     });
     const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Неизвестная ошибка');
+    if (!data.success) throw new Error(data.error);
 
     tg.openInvoice(data.invoice_url, status => {
       if (status === 'paid') {
-        tg.showAlert('Заказ оплачен! Ждите доставки.');
+        tg.showAlert('Заказ оплачен!');
         cart = []; saveCart(); renderCart(); updateBadge();
-        if (document.getElementById('address'))  document.getElementById('address').value  = '';
-        if (document.getElementById('comment'))   document.getElementById('comment').value   = '';
-      } else {
-        tg.showAlert('Оплата не завершена.');
       }
       btn.disabled = false;
       btn.textContent = 'Оплатить заказ';
@@ -229,65 +227,49 @@ document.getElementById('submit-order-btn')?.addEventListener('click', async () 
 
 /* ════ МОИ ЗАКАЗЫ ════ */
 async function loadUserOrders() {
-  if (!currentUser.id) return;
-  const container = document.getElementById('orders-list');
+  const container = document.querySelector('.orders-empty'); // В HTML у тебя только этот класс в заказах
   if (!container) return;
-  container.innerHTML = '<div class="empty-state">Загрузка...</div>';
+  
   try {
     const res = await fetch(`/api/user/${currentUser.id}/orders`);
     const orders = await res.json();
-    if (!Array.isArray(orders) || orders.length === 0) {
-      container.innerHTML = `
-        <div class="orders-empty">
-          <div class="orders-empty-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-              <rect x="9" y="3" width="6" height="4" rx="1"/>
-              <path d="M9 12h6M9 16h4"/>
-            </svg>
+    if (!Array.isArray(orders) || orders.length === 0) return;
+
+    container.parentElement.innerHTML = `
+      <div class="top-header"><div class="header-row"><div class="header-title">Заказы</div></div></div>
+      <div class="page-pad">
+        ${orders.map(o => `
+          <div class="cart-item" style="flex-direction:column; align-items:flex-start; gap:5px;">
+            <div style="display:flex; justify-content:space-between; width:100%">
+              <b style="font-size:14px">Заказ #${o.id}</b>
+              <span style="font-size:11px; color:var(--accent)">${getStatusText(o.status)}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text2)">${getOrderItemsHTML(o)}</div>
+            <div style="font-size:13px; font-weight:800; margin-top:5px">${parseFloat(o.total_amount).toLocaleString('ru-RU')} ₽</div>
           </div>
-          <h3>Заказов пока нет</h3>
-          <p>Ваши заказы появятся здесь после оформления</p>
-        </div>`;
-      return;
-    }
-    container.innerHTML = orders.map(o => `
-      <div class="order-card">
-        <div class="order-header">
-          <span class="order-id">Заказ #${o.id}</span>
-          <span class="order-status status-${o.status}">${getStatusText(o.status)}</span>
-        </div>
-        <div class="order-items">${getOrderItemsHTML(o)}</div>
-        <div class="order-footer">
-          <span class="order-total">${parseFloat(o.total_amount).toLocaleString('ru-RU')} ₽</span>
-          <span class="order-date">${new Date(o.created_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
-        </div>
+        `).join('')}
       </div>
-    `).join('');
-  } catch {
-    container.innerHTML = '<div class="empty-state">Ошибка загрузки заказов</div>';
-  }
+    `;
+  } catch (e) {}
 }
 
 function getStatusText(s) {
-  return { pending_payment:'Ожидает оплаты', paid:'Оплачен', cooking:'Готовится',
-           ready:'Готов к выдаче', delivering:'Доставляется', delivered:'Доставлен', cancelled:'Отменён' }[s] || s;
+  return { pending_payment:'Ожидает', paid:'Оплачен', cooking:'Готовится', delivering:'В пути', delivered:'Доставлен' }[s] || s;
 }
 function getOrderItemsHTML(o) {
-  try { return JSON.parse(o.items||'[]').map(i=>`• ${i.name} × ${i.qty}`).join('<br>'); }
-  catch { return 'Нет данных'; }
+  try { return JSON.parse(o.items||'[]').map(i=>`${i.name} (${i.qty})`).join(', '); }
+  catch { return 'Детали заказа'; }
 }
 
 /* ════ ПРОФИЛЬ ════ */
 async function loadUserProfile() {
-  if (!currentUser.id) return;
   const name = currentUser.first_name || 'Пользователь';
   const el = id => document.getElementById(id);
 
   if (el('profile-name'))   el('profile-name').textContent  = name;
-  if (el('profile-id'))     el('profile-id').textContent    = 'ID: ' + currentUser.id;
+  if (el('profile-id'))     el('profile-id').textContent    = 'ID: ' + (currentUser.id || '—');
   if (el('profile-avatar')) el('profile-avatar').textContent = name.charAt(0).toUpperCase();
-  if (el('card-number'))    el('card-number').textContent   = '•••• •••• •••• ' + String(currentUser.id).slice(-4);
+  if (el('card-number'))    el('card-number').textContent   = '•••• •••• •••• ' + String(currentUser.id || '0000').slice(-4);
 
   const qrBox = el('qrcode');
   if (qrBox && typeof QRCode !== 'undefined') {
@@ -295,7 +277,7 @@ async function loadUserProfile() {
     new QRCode(qrBox, { text: 'foodhub_' + currentUser.id, width: 80, height: 80 });
   }
 
-  const botUsername = tg.initDataUnsafe?.bot?.username || 'foodhub_bot';
+  const botUsername = 'ваша_ссылка_на_бота';
   if (el('ref-link')) el('ref-link').textContent = `https://t.me/${botUsername}?start=ref_${currentUser.id}`;
 
   try {
@@ -305,13 +287,10 @@ async function loadUserProfile() {
   } catch {}
 }
 
-/* ════ УТИЛИТЫ ════ */
 window.copyRefLink = () => {
   const text = document.getElementById('ref-link')?.textContent;
   if (!text) return;
-  navigator.clipboard.writeText(text)
-    .then(() => tg.showAlert('Ссылка скопирована!'))
-    .catch(() => tg.showAlert('Не удалось скопировать.'));
+  navigator.clipboard.writeText(text).then(() => tg.showAlert('Скопировано!'));
 };
 
 updateBadge();
