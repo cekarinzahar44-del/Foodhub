@@ -300,114 +300,72 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
 }
 
 /* ════════════════════════════════════════
-   MENU GRID — КОМПАКТНЫЙ ВАРИАНТ
+   FORCE COMPACT GRID (2 COLUMNS)
    ════════════════════════════════════════ */
-.menu-grid {
-  display: grid; 
-  grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: 260px; /* УМЕНЬШИЛИ с 340px до 260px */
-  gap: 10px; 
-  padding: 0 16px 24px;
+
+/* Принудительно ставим в 2 колонки */
+body .menu-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important; 
+  gap: 8px !important;
+  padding: 0 12px 20px !important;
+  grid-auto-rows: auto !important;
 }
 
-.menu-item, .menu-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px; /* Чуть меньше скругление */
-  overflow: hidden;
-  display: flex; 
-  flex-direction: column;
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  height: 100%;
+/* Ограничиваем высоту карточки */
+body .menu-item, 
+body .menu-card {
+  height: auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-.item-image, .menu-card-img {
-  width: 100%; 
-  height: 120px; /* УМЕНЬШИЛИ с 160px до 120px */
-  overflow: hidden; 
-  position: relative;
-  flex-shrink: 0;
+/* Урезаем картинку — это самое важное */
+body .item-image, 
+body .menu-card-img {
+  height: 100px !important; /* На скриншоте они огромные, ставим 100px */
+  min-height: 100px !important;
 }
 
-.item-image img, .menu-card-img img {
-  width: 100%; 
-  height: 100%; 
-  object-fit: cover;
-  transition: transform 0.4s ease;
+/* Ужимаем тексты */
+body .item-info, 
+body .menu-card-body {
+  padding: 6px 8px !important;
 }
 
-.item-info, .menu-card-body {
-  padding: 8px 10px; /* УМЕНЬШИЛИ отступы */
-  display: flex;
-  flex-direction: column; 
-  flex: 1;
-  gap: 3px;
-  overflow: hidden;
+body .item-name, 
+body .menu-card-name {
+  font-size: 12px !important;
+  margin-bottom: 2px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important; /* Убираем clamp, чтобы точно была 1 строка */
 }
 
-.item-name, .menu-card-name {
-  font-size: 13px; /* УМЕНЬШИЛИ шрифт */  font-weight: 700; 
-  line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  min-height: 30px;
+body .item-desc, 
+body .menu-card-desc {
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 1 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  margin-bottom: 4px !important;
 }
 
-.item-desc, .menu-card-desc {
-  font-size: 10px; /* УМЕНЬШИЛИ шрифт */
-  color: var(--text2); 
-  line-height: 1.25; 
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  max-height: 24px;
+/* Цена и кнопка */
+body .item-price, 
+body .menu-card-price {
+  font-size: 13px !important;
 }
 
-.item-footer, .menu-card-footer {
-  display: flex; 
-  align-items: center;
-  justify-content: space-between; 
-  margin-top: auto;
-  padding-top: 4px;
+body .add-btn {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 14px !important;
 }
-
-.item-price, .menu-card-price {
-  font-size: 15px; /* Чуть меньше */
-  font-weight: 900;
-  background: var(--grad);
-  -webkit-background-clip: text; 
-  -webkit-text-fill-color: transparent;
-}
-
-.add-btn {
-  width: 28px; /* УМЕНЬШИЛИ кнопку */
-  height: 28px; 
-  border-radius: 8px;
-  border: none; 
-  background: var(--grad); 
-  color: #fff;
-  font-size: 18px; 
-  font-weight: 300; 
-  line-height: 1;
-  display: flex;   align-items: center; 
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255,107,53,0.38);
-  transition: transform 0.15s ease;
-  flex-shrink: 0;
-}
-
-.add-btn:active { transform: scale(0.85); }
-
-
 
 
 /* ════════════════════════════════════════
