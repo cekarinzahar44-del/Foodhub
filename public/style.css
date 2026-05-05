@@ -302,15 +302,17 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
 /* ════════════════════════════════════════
    MENU GRID — ИСПРАВЛЕНО ДЛЯ ГЕОМЕТРИИ
    ════════════════════════════════════════ */
+/* ════════════════════════════════════════
+   MENU GRID — ИСПРАВЛЕНО ДЛЯ ГЕОМЕТРИИ
+   ════════════════════════════════════════ */
 .menu-grid {
   display: grid; 
   grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 340px; /* ФИКСИРОВАННАЯ ВЫСОТА ВСЕХ КАРТОЧЕК */
   gap: 12px; 
   padding: 0 16px 24px;
-  align-items: stretch; /* Все карточки одной высоты */
 }
 
-/* Both old (.menu-item) and new (.menu-card) class names */
 .menu-item, .menu-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -321,80 +323,75 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  height: 100%; /* Занимаем всю высоту ячейки */
-  min-height: 280px; /* Минимальная высота для ровности */
-}
-.menu-item:active, .menu-card:active {
-  transform: scale(0.968);
-  box-shadow: 0 0 0 1px rgba(255,107,53,0.3);
+  height: 100%;
 }
 
 .item-image, .menu-card-img {
   width: 100%; 
-  height: 140px; /* Фиксированная высота картинки */
+  height: 160px; /* ФИКСИРОВАННАЯ ВЫСОТА КАРТИНКИ */
   overflow: hidden; 
   position: relative;
-  flex-shrink: 0; /* Картинка не сжимается */
+  flex-shrink: 0;
 }
+
 .item-image img, .menu-card-img img {
   width: 100%; 
   height: 100%; 
-  object-fit: cover; /* Заполняем без искажений */
+  object-fit: cover;
   transition: transform 0.4s ease;
-}.menu-item:active .item-image img,
-.menu-card:active .menu-card-img img { 
-  transform: scale(1.06); 
-}
-.item-image::after, .menu-card-img::after {
-  content: ''; 
-  position: absolute; 
-  inset: 0;
-  background: linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.55) 100%);
 }
 
 .item-info, .menu-card-body {
-  padding: 12px; 
+  padding: 11px 12px; 
   display: flex;
   flex-direction: column; 
-  flex: 1; /* Занимаем всё доступное место */
-  gap: 5px;
+  flex: 1;
+  gap: 4px;
+  overflow: hidden; /* Скрываем всё что не влезает */
 }
+
 .item-name, .menu-card-name {
-  font-size: 14px; 
-  font-weight: 700; 
-  line-height: 1.25;
-  min-height: 34px; /* Фиксированная высота для 2 строк */
+  font-size: 14px;   font-weight: 700; 
+  line-height: 1.2;
+  /* ОБРЕЗКА НАЗВАНИЯ ДО 2 СТРОК */
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  min-height: 34px;
 }
+
 .item-desc, .menu-card-desc {
   font-size: 11px; 
   color: var(--text2); 
-  line-height: 1.4; 
+  line-height: 1.3; 
   flex: 1;
-  min-height: 28px; /* Фиксированная высота описания */
+  /* ОБРЕЗКА ОПИСАНИЯ ДО 2 СТРОК */
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  max-height: 28px;
 }
+
 .item-footer, .menu-card-footer {
   display: flex; 
   align-items: center;
   justify-content: space-between; 
-  margin-top: auto; /* Прижимаем к низу */
+  margin-top: auto;
   padding-top: 6px;
 }
+
 .item-price, .menu-card-price {
-  font-size: 16px;   font-weight: 900;
+  font-size: 16px; 
+  font-weight: 900;
   background: var(--grad);
   -webkit-background-clip: text; 
   -webkit-text-fill-color: transparent;
 }
+
 .add-btn {
   width: 32px; 
   height: 32px; 
@@ -403,8 +400,7 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
   background: var(--grad); 
   color: #fff;
   font-size: 22px; 
-  font-weight: 300; 
-  line-height: 1;
+  font-weight: 300;   line-height: 1;
   display: flex; 
   align-items: center; 
   justify-content: center;
@@ -413,7 +409,9 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
   transition: transform 0.15s ease;
   flex-shrink: 0;
 }
+
 .add-btn:active { transform: scale(0.85); }
+
 
 /* ════════════════════════════════════════
    CART
