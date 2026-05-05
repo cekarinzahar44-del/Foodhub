@@ -1016,3 +1016,117 @@ textarea.input-field, textarea.inp { resize: none; height: 78px; }
 }
 .nav-icon-wrap, .nav-icon { width: 36px !important; height: 26px !important; }
 
+/* ════════════════════════════════════════
+   ФИНАЛЬНАЯ ВЕРСИЯ — ОДИН ЭКРАН
+   Замени ВЕСЬ style.css или добавь в конец
+   ════════════════════════════════════════ */
+
+/* Убираем/скрываем всё лишнее */
+.hero-banner { display: none !important; }
+.marquee-container { display: none !important; }
+.section-title { display: none !important; }
+
+/* Компактная шапка */
+.top-header { 
+  padding: 8px 12px 4px !important; 
+  min-height: auto !important;
+}
+.top-header h1 { 
+  font-size: 18px !important; 
+  margin: 0 !important;
+}
+
+/* Компактный поиск */
+.search-bar { 
+  padding: 4px 12px !important; 
+  margin: 0 !important;
+}
+#search-input { 
+  padding: 8px 12px 8px 32px !important; 
+  font-size: 12px !important;
+  height: 36px !important;
+}
+
+/* Компактные категории */
+.categories-container { 
+  padding: 4px 8px 6px !important; 
+  gap: 4px !important;
+}
+.cat-btn { 
+  font-size: 11px !important; 
+  padding: 5px 10px !important; 
+  border-radius: 16px !important;
+  min-height: 28px !important;
+}
+
+/* Сетка меню */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px !important;
+  padding: 0 12px 12px !important;
+}
+/* ОЧЕНЬ компактные карточки */
+.menu-item, .menu-card {
+  min-height: 180px !important;
+  max-height: 180px !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+/* Маленькие картинки */
+.item-image, .menu-card-img {
+  height: 100px !important;
+}
+
+/* Компактный контент */
+.item-info, .menu-card-body {
+  padding: 6px 8px !important;
+  gap: 2px !important;
+}
+
+.item-name, .menu-card-name {
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  margin-bottom: 2px !important;
+  min-height: auto !important;
+  /* Обрезаем название до 2 строк */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Скрываем описание совсем */
+.item-desc, .menu-card-desc {
+  display: none !important;
+}
+
+/* Цена и кнопка */
+.item-footer, .menu-card-footer {
+  margin-top: 2px !important;
+  padding-top: 0 !important;
+}
+
+.item-price, .menu-card-price {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+.add-btn {  width: 24px !important;
+  height: 24px !important;
+  font-size: 14px !important;
+  border-radius: 6px !important;
+}
+
+/* Навигация компактнее */
+.bottom-nav {
+  height: 64px !important;
+  padding: 4px 0 0 !important;
+}
+.nav-item { font-size: 9px !important; }
+.nav-icon-wrap, .nav-icon { 
+  width: 36px !important; 
+  height: 24px !important; 
+}
