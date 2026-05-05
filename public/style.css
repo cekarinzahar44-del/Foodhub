@@ -300,23 +300,20 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
 }
 
 /* ════════════════════════════════════════
-   MENU GRID — ИСПРАВЛЕНО ДЛЯ ГЕОМЕТРИИ
-   ════════════════════════════════════════ */
-/* ════════════════════════════════════════
-   MENU GRID — ИСПРАВЛЕНО ДЛЯ ГЕОМЕТРИИ
+   MENU GRID — КОМПАКТНЫЙ ВАРИАНТ
    ════════════════════════════════════════ */
 .menu-grid {
   display: grid; 
   grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: 340px; /* ФИКСИРОВАННАЯ ВЫСОТА ВСЕХ КАРТОЧЕК */
-  gap: 12px; 
+  grid-auto-rows: 260px; /* УМЕНЬШИЛИ с 340px до 260px */
+  gap: 10px; 
   padding: 0 16px 24px;
 }
 
 .menu-item, .menu-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--r); 
+  border-radius: 16px; /* Чуть меньше скругление */
   overflow: hidden;
   display: flex; 
   flex-direction: column;
@@ -328,7 +325,7 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
 
 .item-image, .menu-card-img {
   width: 100%; 
-  height: 160px; /* ФИКСИРОВАННАЯ ВЫСОТА КАРТИНКИ */
+  height: 120px; /* УМЕНЬШИЛИ с 160px до 120px */
   overflow: hidden; 
   position: relative;
   flex-shrink: 0;
@@ -342,38 +339,36 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
 }
 
 .item-info, .menu-card-body {
-  padding: 11px 12px; 
+  padding: 8px 10px; /* УМЕНЬШИЛИ отступы */
   display: flex;
   flex-direction: column; 
   flex: 1;
-  gap: 4px;
-  overflow: hidden; /* Скрываем всё что не влезает */
+  gap: 3px;
+  overflow: hidden;
 }
 
 .item-name, .menu-card-name {
-  font-size: 14px;   font-weight: 700; 
+  font-size: 13px; /* УМЕНЬШИЛИ шрифт */  font-weight: 700; 
   line-height: 1.2;
-  /* ОБРЕЗКА НАЗВАНИЯ ДО 2 СТРОК */
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  min-height: 34px;
+  min-height: 30px;
 }
 
 .item-desc, .menu-card-desc {
-  font-size: 11px; 
+  font-size: 10px; /* УМЕНЬШИЛИ шрифт */
   color: var(--text2); 
-  line-height: 1.3; 
+  line-height: 1.25; 
   flex: 1;
-  /* ОБРЕЗКА ОПИСАНИЯ ДО 2 СТРОК */
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  max-height: 28px;
+  max-height: 24px;
 }
 
 .item-footer, .menu-card-footer {
@@ -381,11 +376,11 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
   align-items: center;
   justify-content: space-between; 
   margin-top: auto;
-  padding-top: 6px;
+  padding-top: 4px;
 }
 
 .item-price, .menu-card-price {
-  font-size: 16px; 
+  font-size: 15px; /* Чуть меньше */
   font-weight: 900;
   background: var(--grad);
   -webkit-background-clip: text; 
@@ -393,16 +388,16 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
 }
 
 .add-btn {
-  width: 32px; 
-  height: 32px; 
-  border-radius: 10px;
+  width: 28px; /* УМЕНЬШИЛИ кнопку */
+  height: 28px; 
+  border-radius: 8px;
   border: none; 
   background: var(--grad); 
   color: #fff;
-  font-size: 22px; 
-  font-weight: 300;   line-height: 1;
-  display: flex; 
-  align-items: center; 
+  font-size: 18px; 
+  font-weight: 300; 
+  line-height: 1;
+  display: flex;   align-items: center; 
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(255,107,53,0.38);
@@ -411,6 +406,8 @@ body.loading .bottom-nav { opacity: 0; pointer-events: none; }
 }
 
 .add-btn:active { transform: scale(0.85); }
+
+
 
 
 /* ════════════════════════════════════════
