@@ -243,50 +243,101 @@
     }
 
     /* ═══ MENU GRID ═══ */
-    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px 24px; }
+        /* ═══ MENU GRID — ТЕПЕРЬ КОМПАКТНЫЙ ═══ */
+    .menu-grid { 
+      display: grid; 
+      grid-template-columns: repeat(2, 1fr); 
+      gap: 10px; 
+      padding: 0 12px 24px; 
+    }
 
     .menu-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 20px; overflow: hidden;
-      display: flex; flex-direction: column;
+      border-radius: 16px; 
+      overflow: hidden;
+      display: flex; 
+      flex-direction: column;
       backdrop-filter: var(--blur);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.2s ease;
       position: relative;
     }
-    .menu-card:active { transform: scale(0.97); }
+    
+    .menu-card:active { transform: scale(0.96); }
+
+    /* Уменьшаем высоту картинки */
     .menu-card-img {
-      width: 100%; height: 120px; position: relative; overflow: hidden;
+      width: 100%; 
+      height: 100px; /* Было 120px, ставим 100px для компактности */
+      position: relative; 
+      overflow: hidden;
     }
+    
     .menu-card-img img {
-      width: 100%; height: 100%; object-fit: cover;
-      transition: transform 0.4s ease;
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover;
     }
-    .menu-card:active .menu-card-img img { transform: scale(1.05); }
-    .menu-card-img::after {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.6) 100%);
+
+    /* Ужимаем отступы и тексты */
+    .menu-card-body { 
+      padding: 8px 10px; 
+      flex: 1; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 4px; 
     }
-    .menu-card-body { padding: 12px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
-    .menu-card-name { font-size: 14px; font-weight: 700; line-height: 1.25; }
-    .menu-card-desc { font-size: 11px; color: var(--text2); line-height: 1.4; flex: 1; }
-    .menu-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+    
+    .menu-card-name { 
+      font-size: 13px; /* Уменьшили шрифт */
+      font-weight: 700; 
+      line-height: 1.2;
+      display: -webkit-box;
+      -webkit-line-clamp: 1; /* Название только в одну строку */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .menu-card-desc { 
+      font-size: 10px; /* Уменьшили описание */
+      color: var(--text2); 
+      line-height: 1.3; 
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; /* Описание не более 2 строк */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .menu-card-footer { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      margin-top: 4px; 
+    }
+    
     .menu-card-price {
-      font-size: 16px; font-weight: 800;
+      font-size: 14px; 
+      font-weight: 800;
       background: var(--grad1);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent;
     }
+
+    /* Маленькая кнопка плюса */
     .add-btn {
-      width: 32px; height: 32px; border-radius: 10px;
-      border: none; cursor: pointer;
+      width: 28px; 
+      height: 28px; 
+      border-radius: 8px;
+      border: none; 
       background: var(--grad1);
-      color: white; font-size: 20px; font-weight: 300;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 12px rgba(255,107,53,0.35);
-      transition: transform 0.15s ease;
-      line-height: 1;
+      color: white; 
+      font-size: 18px;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
     }
-    .add-btn:active { transform: scale(0.88); }
+
 
     /* ═══ CART ═══ */
     .page-pad { padding: 16px; }
