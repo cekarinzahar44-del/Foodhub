@@ -965,75 +965,81 @@ textarea.input-field, textarea.inp { resize: none; height: 78px; }
   .nav-item svg     { width: 18px; height: 18px; }
 }
 /* ════════════════════════════════════════
-   КОМПАКТНОЕ МЕНЮ (FIT ONE SCREEN)
-   Добавь в САМЫЙ КОНЕЦ style.css
+   ULTRA-COMPACT MODE (FIT ONE SCREEN)
    ════════════════════════════════════════ */
 
-/* 1. Ужимаем шапку и баннер */
-.top-header { padding: 10px 16px 6px !important; }
-.top-header h1 { font-size: 20px !important; }
+/* 1. Схлопываем шапку и баннер */
+.top-header { 
+  padding: 8px 16px 4px !important; 
+}
+.top-header h1 { font-size: 18px !important; }
 
+/* Уменьшаем баннер, чтобы он не съедал пол-экрана */
 .hero-banner {
   margin: 6px 12px !important;
-  padding: 12px !important;
-  border-radius: 16px !important;
+  padding: 10px 14px !important;
+  border-radius: 14px !important;
 }
-.hero-title { font-size: 15px !important; margin-bottom: 4px !important; }
-.hero-sub { font-size: 10px !important; margin-bottom: 8px !important; }
-.hero-stats { gap: 12px !important; }
+.hero-tag { font-size: 8px !important; padding: 2px 8px !important; margin-bottom: 4px !important; }
+.hero-title { font-size: 14px !important; margin-bottom: 2px !important; }
+.hero-sub { display: none; } /* Скрываем подзаголовок для экономии места */
+.hero-stats { gap: 14px !important; }
 .hero-stat-val { font-size: 14px !important; }
-.hero-stat-label { font-size: 9px !important; }
 
-/* 2. Компактный поиск и категории */
-.search-bar { padding: 4px 12px 6px !important; }
+/* 2. Поиск и категории в одну линию (визуально плотнее) */
+.search-bar { padding: 4px 12px !important; }
 #search-input { 
-  padding: 9px 12px 9px 36px !important; 
-  font-size: 13px !important; 
+  padding: 7px 10px 7px 32px !important; 
+  font-size: 13px !important;
+}
+
+.categories-container { 
+  padding: 4px 12px 6px !important; 
+  gap: 5px !important; 
+}
+.cat-btn { 
+  font-size: 11px !important; 
+  padding: 5px 12px !important; 
+}
+
+/* 3. Оптимизация сетки товаров */
+.section-title { 
+  padding: 4px 16px 6px !important; 
+  font-size: 14px !important; 
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.menu-grid {
+  gap: 8px !important;
+  padding: 0 12px 12px !important;
+  /* Убираем жесткую высоту строк, даем карточкам сжаться */
+  grid-auto-rows: auto !important; 
+}
+
+/* 4. Миниатюризация карточки */
+.menu-item, .menu-card {
   border-radius: 12px !important;
 }
 
-.categories-container { padding: 2px 12px 8px !important; gap: 6px !important; }
-.cat-btn { font-size: 11px !important; padding: 6px 10px !important; border-radius: 20px !important; }
-
-/* 3. Заголовок секции */
-.section-title { padding: 2px 12px 6px !important; font-size: 15px !important; }
-
-/* 4. Сетка меню */
-.menu-grid {
-  gap: 8px !important;
-  padding: 0 12px 14px !important;
-}
-
-/* 5. Карточка товара */
-.menu-item, .menu-card {
-  min-height: auto !important;
-  border-radius: 14px !important;
-}
-
 .item-image, .menu-card-img {
-  height: 95px !important; /* Было ~140-160px */
+  height: 85px !important; /* Критически важное уменьшение */
 }
 
 .item-info, .menu-card-body {
-  padding: 7px 9px !important;
-  gap: 2px !important;
+  padding: 6px 8px !important;
 }
 
 .item-name, .menu-card-name {
   font-size: 12px !important;
-  line-height: 1.2 !important;
+  -webkit-line-clamp: 1 !important; /* Название в одну строку */
   min-height: auto !important;
 }
 
 .item-desc, .menu-card-desc {
   font-size: 10px !important;
-  line-height: 1.25 !important;
-  max-height: 24px !important;
-}
-
-.item-footer, .menu-card-footer {
-  margin-top: 3px !important;
-  padding-top: 3px !important;
+  -webkit-line-clamp: 1 !important; /* Описание в одну строку */
+  margin-bottom: 4px !important;
 }
 
 .item-price, .menu-card-price {
@@ -1041,16 +1047,14 @@ textarea.input-field, textarea.inp { resize: none; height: 78px; }
 }
 
 .add-btn {
-  width: 26px !important;
-  height: 26px !important;
-  font-size: 16px !important;
-  border-radius: 7px !important;
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 14px !important;
 }
 
-/* 6. Нижняя навигация (чуть компактнее) */
+/* 5. Навигация */
 .bottom-nav {
-  height: 72px !important;
-  padding-top: 6px !important;
+  height: 64px !important;
 }
-.nav-icon-wrap, .nav-icon { width: 40px !important; height: 28px !important; }
-.nav-item { font-size: 9px !important; }
+.nav-icon-wrap, .nav-icon { width: 36px !important; height: 26px !important; }
+
