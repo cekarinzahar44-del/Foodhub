@@ -52,6 +52,23 @@ function requireDB(req, res, next) {
 
 initDB();
 
+// === ⏰ ПРОВЕРКА РАБОЧЕГО ВРЕМЕНИ (10:00 - 22:00 МСК) ===
+const OPEN_HOUR = 10;
+const CLOSE_HOUR = 22;
+
+function isRestaurantOpen() {
+  const now = new Date();
+  const moscowStr = now.toLocaleString('en-US', { timeZone: 'Europe/Moscow', hour12: false });
+  const moscow = new Date(moscowStr);
+  const h = moscow.getHours();
+  return h >= OPEN_HOUR && h < CLOSE_HOUR;
+}
+
+function getMoscowTimeStr() {
+  const now = new Date();
+  return now.toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit' });
+}
+
 // === 🔥 ПЛАНИРОВЩИК (10:00 - 22:00 МСК) ===
 async function startShiftScheduler() {
   console.log('🕒 Планировщик запущен (10:00 - 22:00 МСК)');
@@ -106,14 +123,15 @@ async function closeShift() {
     await pool.query('UPDATE shifts SET closed_at = NOW(), is_active = false WHERE id = $1', [active.id]);
     console.log('🔴 Смена закрыта');
 
-    // 2. Запрос ТОЛЬКО для цифр (без items!)
+    // 2. Запрос ТОЛЬКО для цифр (без items!) — только оплаченные
     const stats = await pool.query(`
       SELECT
         COALESCE(SUM(total_amount), 0) as revenue,
-        COUNT(*) FILTER (WHERE status != 'cancelled') as completed,
+        COUNT(*) FILTER (WHERE status NOT IN ('pending_payment', 'cancelled')) as completed,
         COUNT(*) FILTER (WHERE status = 'cancelled') as cancelled
       FROM orders
       WHERE created_at >= $1 AND created_at <= $2
+        AND status NOT IN ('pending_payment')
     `, [active.opened_at, new Date()]);
 
     const revenue = parseFloat(stats.rows[0].revenue);
@@ -121,10 +139,11 @@ async function closeShift() {
     const cancelled = parseInt(stats.rows[0].cancelled);
     const avg = completed > 0 ? Math.round(revenue / completed) : 0;
 
-    // 3. ОТДЕЛЬНЫЙ запрос для товаров (items)
+    // 3. ОТДЕЛЬНЫЙ запрос для товаров (items) — только оплаченные
     const itemsRes = await pool.query(`
       SELECT items FROM orders 
       WHERE created_at >= $1 AND created_at <= $2 AND items IS NOT NULL
+        AND status NOT IN ('pending_payment', 'cancelled')
     `, [active.opened_at, new Date()]);
 
     // 4. Считаем продажи
@@ -176,7 +195,27 @@ app.get('/api/menu', requireDB, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ⏰ Проверка работает ли ресторан сейчас
+app.get('/api/status', (req, res) => {
+  res.json({
+    isOpen: isRestaurantOpen(),
+    moscowTime: getMoscowTimeStr(),
+    openHour: OPEN_HOUR,
+    closeHour: CLOSE_HOUR,
+    message: isRestaurantOpen() ? null : 'Мы закрыты. Возвращайтесь к нам с 10:00 до 22:00'
+  });
+});
+
 app.post('/api/payment/create', async (req, res) => {
+  // ⏰ Проверка рабочих часов
+  if (!isRestaurantOpen()) {
+    return res.status(403).json({
+      error: 'closed',
+      message: 'Мы закрыты. Возвращайтесь к нам с 10:00 до 22:00',
+      currentTime: getMoscowTimeStr()
+    });
+  }
+
   const { userId, items, total, address, comment } = req.body;
   try {
     const orderRes = await pool.query(`INSERT INTO orders (user_id, total_amount, status, address, comment, items) VALUES ($1, $2, 'pending_payment', $3, $4, $5) RETURNING id`, [BigInt(userId), total, address, comment || '', JSON.stringify(items)]);
@@ -197,7 +236,8 @@ bot.on('successful_payment', async (ctx) => {
 app.get('/api/admin/orders', async (req, res) => {
   try {
     const { date, from, to } = req.query;
-    let query = 'SELECT * FROM orders WHERE 1=1';
+    // 🔥 Только оплаченные и далее по воронке (без pending_payment — это неоплаченные)
+    let query = `SELECT * FROM orders WHERE status NOT IN ('pending_payment')`;
     const params = [];
     let idx = 1;
     if (date) { query += ` AND DATE(created_at) = $${idx}`; params.push(date); idx++; }
@@ -252,8 +292,9 @@ app.delete('/api/admin/menu/:id', requireDB, async (req, res) => {
 
 app.get('/api/admin/metrics', requireDB, async (req, res) => {
   try {
-    const revenue = await pool.query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status != 'cancelled'");
-    const orders = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status != 'cancelled'");
+    // 🔥 Только оплаченные и далее (без pending_payment и cancelled)
+    const revenue = await pool.query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status NOT IN ('pending_payment', 'cancelled')");
+    const orders = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status NOT IN ('pending_payment', 'cancelled')");
     const totalOrders = parseInt(orders.rows[0].count);
     const totalRevenue = parseFloat(revenue.rows[0].total);
     const avgCheck = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
